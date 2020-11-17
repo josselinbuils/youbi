@@ -1,4 +1,4 @@
-import { Store } from './store';
+import { Store } from './Store';
 
 export function persistent(target: any, key: string): void {
   const store = Store.getInstance();

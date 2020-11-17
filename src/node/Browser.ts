@@ -11,7 +11,7 @@ import { COVERS_FOLDER } from './constants';
 import { LastfmAPI } from './LastfmAPI';
 import { Logger } from './Logger';
 import { Main } from './main';
-import { Store } from './store';
+import { Store } from './Store';
 
 export class Browser {
   private coversPath = join(Main.getAppDataPath(), COVERS_FOLDER);

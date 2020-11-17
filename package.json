@@ -1,9 +1,11 @@
 {
   "name": "youbi",
   "version": "0.1.0",
+  "main": "dist/node/main.js",
   "scripts": {
     "build:browser": "rm -rf dist/browser && webpack -c ./config/browser/webpack.config.js",
-    "build:node": "rm -rf dist/node dist/shared && tsc -p ./config/node/tsconfig.json"
+    "build:node": "rm -rf dist/node dist/shared && tsc -p ./config/node/tsconfig.json",
+    "start": "yarn build:node && electron ."
   },
   "dependencies": {
     "@josselinbuils/utils": "^0.1.2",
@@ -13,6 +15,7 @@
     "alac": "^0.1.0",
     "ansicolor": "^1.1.93",
     "av": "^0.4.9",
+    "electron-store": "^6.0.1",
     "electron-window-state": "^5.0.3",
     "flac.js": "^0.2.1",
     "fs-extra": "^9.0.1",
