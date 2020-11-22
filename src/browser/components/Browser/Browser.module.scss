@@ -1,0 +1,15 @@
+@import '../../App.constants';
+@import './Browser.constants';
+
+.browser {
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: $tileOffset;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $secondaryColor;
+  }
+}

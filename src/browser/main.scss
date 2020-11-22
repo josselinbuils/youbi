@@ -1,0 +1,15 @@
+$fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
+
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
+@import '~@fortawesome/fontawesome-free/scss/solid.scss';
+
+body,
+html,
+[id='root'] {
+  height: 100%;
+}
+
+body {
+  font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+  margin: 0;
+}

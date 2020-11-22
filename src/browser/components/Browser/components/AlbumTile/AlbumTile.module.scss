@@ -1,0 +1,60 @@
+@import '../../../../App.constants';
+@import '../../Browser.constants';
+
+.albumTile {
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+  background-size: contain;
+  margin-bottom: $tileOffset;
+  margin-left: $tileOffset;
+  position: relative;
+  vertical-align: top;
+}
+
+.caret {
+  $size: 15px;
+
+  height: 0;
+  overflow: hidden;
+  position: absolute;
+  left: 50%;
+  margin-left: -8px;
+  top: calc(100% + #{$tileOffset} - #{$size});
+  transition: height 0.025s linear;
+  transition-delay: 0.075s;
+
+  &.noTransition {
+    transition-delay: 0s;
+    transition-duration: 0s;
+
+    &.shown {
+      transition-duration: 0s;
+    }
+  }
+
+  &.shown {
+    transition: height 0.05s linear;
+    height: $size;
+  }
+
+  .caretInner {
+    border-style: solid;
+    border-width: 0 10px $size 10px;
+    border-color: transparent;
+    border-bottom-color: inherit;
+  }
+}
+
+.defaultPreview {
+  font-size: 90px;
+  line-height: 200px;
+  background: $secondaryColor;
+  text-align: center;
+  color: $textColor;
+
+  &:before {
+    display: table;
+    width: 100%;
+  }
+}

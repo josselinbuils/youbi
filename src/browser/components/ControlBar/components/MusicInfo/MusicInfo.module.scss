@@ -1,0 +1,37 @@
+@import '../../../../App.constants';
+
+.artist {
+  font-size: 0.8em;
+}
+
+.info {
+  width: 158px;
+  margin-left: 12px;
+}
+
+.musicInfo {
+  padding: 10px;
+}
+
+.name,
+.artist {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: text;
+  margin-top: 5px;
+}
+
+.preview {
+  width: 62px;
+  background-repeat: no-repeat;
+  background-size: 62px;
+
+  &.defaultPreview {
+    font-size: 40px;
+    line-height: 62px;
+    text-align: center;
+    background: $secondaryColor;
+    color: $textColor;
+  }
+}

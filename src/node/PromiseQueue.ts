@@ -1,4 +1,4 @@
-import { Deferred } from '@josselinbuils/utils';
+import { Deferred } from '@josselinbuils/utils/Deferred';
 import { Logger } from './Logger';
 
 const logger = Logger.create('PromiseQueue');
@@ -47,6 +47,7 @@ export class PromiseQueue {
     }
   }
 
+  // eslint-disable-next-line no-useless-constructor
   private constructor(private maxConcurrent: number) {}
 }
 

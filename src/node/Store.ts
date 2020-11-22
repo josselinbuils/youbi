@@ -22,5 +22,6 @@ export class Store {
     this.internalStore.set(key, value);
   }
 
+  // eslint-disable-next-line no-useless-constructor
   private constructor(private internalStore: ElectronStore) {}
 }

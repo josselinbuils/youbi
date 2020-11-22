@@ -1,0 +1,37 @@
+.albumMusic {
+  padding: 4px 10px;
+  border-radius: 3px;
+  border: none;
+  appearance: none;
+  background: transparent;
+  outline: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+}
+
+.duration {
+  float: right;
+}
+
+.number,
+.playing {
+  display: inline-block;
+  width: 25px;
+  vertical-align: top;
+}
+
+.playing {
+  font-size: 19px;
+  vertical-align: middle;
+}
+
+.title {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: calc(100% - 80px);
+  display: inline-block;
+  vertical-align: top;
+}

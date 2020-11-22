@@ -1,3 +1,4 @@
+/* eslint-disable no-throw-literal */
 import 'source-map-support/register';
 import { app, BrowserWindow } from 'electron';
 import electronWindowState from 'electron-window-state';
@@ -14,18 +15,13 @@ const logger = Logger.create('Main');
 export class Main {
   private static mainWindow?: BrowserWindow;
 
-  static getAppDataPath(): string {
-    logger.debug('getAppDataPath()');
-    return app.getPath('userData');
-  }
-
   static init(): void {
     logger.debug('init()');
 
     app.on('ready', () => {
       this.createMainWindow();
 
-      const browser = Browser.create();
+      const browser = Browser.create(app.getPath('userData'));
       const player = Player.create();
       const executors = { browser, player };
 
@@ -47,7 +43,7 @@ export class Main {
           try {
             let res = (executor[
               command.name as keyof typeof executor
-            ] as Function).apply(executor, command.args);
+            ] as any).apply(executor, command.args);
 
             if (res instanceof Promise) {
               res = await res;
@@ -71,17 +67,19 @@ export class Main {
       });
     });
 
-    app.on('window-all-closed', () => {
-      // On macOS it is common for applications and their menu bar to stay active until the user quits explicitly with Cmd + Q
-      if (process.platform !== 'darwin') {
-        app.quit();
+    app.on('activate', () => {
+      // On macOS it's common to re-create a window in the app when the dock
+      // icon is clicked and there are no other windows open.
+      if (BrowserWindow.getAllWindows().length === 0) {
+        Main.createMainWindow();
       }
     });
 
-    app.on('activate', () => {
-      // On macOS it's common to re-create a window in the app when the dock icon is clicked and there are no other windows open.
-      if (this.mainWindow === null) {
-        Main.createMainWindow();
+    app.on('window-all-closed', () => {
+      // On macOS it is common for applications and their menu bar to stay
+      // active until the user quits explicitly with Cmd + Q
+      if (process.platform !== 'darwin') {
+        app.quit();
       }
     });
   }
@@ -101,10 +99,11 @@ export class Main {
       height,
       minWidth: 900,
       minHeight: 600,
-      frame: false,
+      // frame: false,
       backgroundColor: '#111625',
+      titleBarStyle: 'hidden',
       webPreferences: {
-        experimentalFeatures: true,
+        enableRemoteModule: true,
         nodeIntegration: false,
         preload: join(__dirname, 'preload.js'),
       },
@@ -113,7 +112,7 @@ export class Main {
     mainWindowState.manage(this.mainWindow);
 
     if (this.isDev()) {
-      this.mainWindow.loadURL('http://localhost:4200', {
+      this.mainWindow.loadURL('http://localhost:3000', {
         extraHeaders: 'pragma: no-cache\n',
       });
       this.mainWindow.webContents.openDevTools();
@@ -128,8 +127,9 @@ export class Main {
     }
 
     this.mainWindow.on('closed', () => {
-      // Dereference the window object, usually you would store windows in an array if your app supports multi windows, this is the time
-      // when you should delete the corresponding element.
+      // Dereference the window object, usually you would store windows in an
+      // array if your app supports multi windows, this is the time when you
+      // should delete the corresponding element.
       delete this.mainWindow;
     });
   }

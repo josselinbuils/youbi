@@ -1,0 +1,23 @@
+@import '../../App.constants';
+
+.center {
+  flex-grow: 1;
+}
+
+.controlBar {
+  font-size: 0.8em;
+  overflow: hidden;
+  color: $textColor;
+  display: flex;
+  height: 83px;
+  box-sizing: border-box;
+  background: lighten($backgroundColor, 5%);
+  border-top: 1px solid darken($backgroundColor, 5%);
+}
+
+.left,
+.right {
+  flex-shrink: 0;
+  flex-grow: 1;
+  flex-basis: 250px;
+}

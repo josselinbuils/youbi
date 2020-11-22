@@ -1,0 +1,28 @@
+@import '../../../../App.constants';
+
+$letterSize: 80px;
+
+.letter {
+  position: sticky;
+  top: 0;
+  left: 20px;
+  width: 0;
+  height: 0;
+  color: $textColor;
+  margin-bottom: -$letterSize;
+  background: $backgroundColor;
+  z-index: 1;
+  text-align: center;
+  line-height: 80px;
+  font-size: 0;
+  transition-property: width, height, font-size;
+  transition-duration: 0.15s;
+  transition-timing-function: ease-out;
+}
+
+.show {
+  width: $letterSize;
+  height: $letterSize;
+  font-size: 50px;
+  transition-timing-function: ease-in-out;
+}

@@ -1,0 +1,47 @@
+@import '../../../../../App.constants';
+
+.bar {
+  width: 0;
+  background: #efefef;
+  position: relative;
+}
+
+.barContainer {
+  background: $secondaryColor;
+
+  &,
+  .bar {
+    height: 4px;
+    border-radius: 2px;
+  }
+}
+
+.currentTime {
+  margin-right: 5px;
+}
+
+.currentTime,
+.duration {
+  text-align: center;
+  font-size: 0.8em;
+  line-height: 16px;
+}
+
+.duration {
+  margin-left: 5px;
+}
+
+.progressBar {
+  margin: 0;
+  padding: 6px 5px;
+  flex-grow: 1;
+  outline: none;
+}
+
+.seek {
+  display: flex;
+  width: 90%;
+  max-width: 700px;
+  margin: 0 auto;
+  position: relative;
+}

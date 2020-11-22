@@ -16,6 +16,6 @@ server.listen(PORT, (error) => {
   if (error) {
     console.error(error);
   } else {
-    console.log('Webpack Dev Server listening on port ' + PORT);
+    console.log(`Webpack Dev Server listening on port ${PORT}`);
   }
 });
