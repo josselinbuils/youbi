@@ -2,13 +2,13 @@ import cn from 'classnames';
 import React, { FC } from 'react';
 import { useAudio } from '../../../AudioProvider/useAudio';
 import styles from './Controls.module.scss';
-import { Seek } from './Seek/Seek';
+import { SeekBar } from './SeekBar/SeekBar';
 
 export const Controls: FC = () => {
   const { audioController, audioState } = useAudio();
 
   const { next, play, prev, toggleRandom, toggleRepeat } = audioController;
-  const { activeMusic, paused, random, repeat } = audioState;
+  const { paused, random, repeat } = audioState;
 
   return (
     <div className={styles.controls}>
@@ -61,7 +61,7 @@ export const Controls: FC = () => {
           <i aria-hidden="true" className="fas fa-redo" />
         </button>
       </div>
-      <Seek activeMusic={activeMusic} progress={0} />
+      <SeekBar />
     </div>
   );
 };

@@ -1,0 +1,21 @@
+.currentTime {
+  margin-right: 5px;
+}
+
+.currentTime,
+.duration {
+  font-size: 0.8em;
+  line-height: 16px;
+  text-align: center;
+}
+
+.duration {
+  margin-left: 5px;
+}
+
+.seekBar {
+  display: flex;
+  width: 90%;
+  max-width: 700px;
+  margin: 0 auto;
+}

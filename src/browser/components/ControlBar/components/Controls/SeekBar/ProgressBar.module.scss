@@ -1,0 +1,41 @@
+@import '../../../../../App.constants';
+
+.bar {
+  position: relative;
+  width: 0;
+  background: #efefef;
+}
+
+.barContainer {
+  background: $secondaryColor;
+
+  &,
+  .bar {
+    height: 4px;
+    border-radius: 2px;
+  }
+}
+
+.progressBar {
+  flex-grow: 1;
+  margin: 0;
+  padding: 6px 5px;
+  outline: none;
+}
+
+.progressBar:hover .bar,
+.seeking .bar {
+  background: $primaryColor;
+}
+
+.progressBar:hover .bar:after,
+.seeking .bar:after {
+  position: absolute;
+  top: -3px;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  content: '';
+  border-radius: 5px;
+  background: $primaryColor;
+}
