@@ -150,33 +150,31 @@ export class AudioController {
   };
 
   private async decode(music: Music): Promise<void> {
-    const arrayBuffer = await (
-      await fetch(`music://${music.pathHash}`)
-    ).arrayBuffer();
-    const bufferView = new Uint8Array(arrayBuffer);
-    const sharedBuffer = new SharedArrayBuffer(arrayBuffer.byteLength);
-    const sharedBufferView = new Uint8Array(sharedBuffer);
-
-    sharedBufferView.set(bufferView);
-
-    worker.onerror = (message: ErrorEvent) => console.error(message);
-
+    let duration: number;
     let format: any;
     let audioBuffer: AudioBuffer;
     let offset = 0;
     let started = false;
 
+    worker.onerror = (message: ErrorEvent) => console.error(message);
+
     worker.onmessage = ({ data }: MessageEvent) => {
-      if (data?.format) {
+      if (data?.duration) {
+        ({ duration } = data);
+      } else if (data?.format) {
         ({ format } = data);
-      } else {
+      } else if (data instanceof SharedArrayBuffer) {
         const { channelsPerFrame, sampleRate } = format;
         const buffer = new Float32Array(data);
         const channelBufferLength = buffer.length / channelsPerFrame;
 
         if (audioBuffer === undefined) {
+          if (duration === undefined) {
+            throw new Error('Unable to retrieve duration');
+          }
+
           audioBuffer = new AudioBuffer({
-            length: 180 * sampleRate,
+            length: Math.ceil((duration / 1000) * sampleRate),
             numberOfChannels: channelsPerFrame,
             sampleRate,
           });
@@ -203,10 +201,37 @@ export class AudioController {
           // start the source playing
           source.start();
         }
+      } else {
+        console.log(data);
       }
     };
 
-    worker.postMessage(sharedBuffer);
+    const response = await fetch(`music://${music.pathHash}`);
+    const reader = response.body?.getReader();
+
+    if (reader !== undefined) {
+      worker.postMessage('start');
+
+      (async () => {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          // eslint-disable-next-line no-await-in-loop
+          const { value, done } = await reader.read();
+
+          if (value !== undefined) {
+            const sharedBuffer = new SharedArrayBuffer(value.byteLength);
+            const sharedBufferView = new Uint8Array(sharedBuffer);
+            sharedBufferView.set(value);
+            worker.postMessage(sharedBuffer);
+          }
+
+          if (done) {
+            worker.postMessage('done');
+            break;
+          }
+        }
+      })();
+    }
   }
 
   private async loadMusic(music: Music): Promise<void> {
@@ -214,23 +239,10 @@ export class AudioController {
       throw new Error('playlist does not contain the given music');
     }
     try {
-      this.activeMusic = music;
-
       await this.decode(music);
-
-      //
-      // const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-      //
-      // const source = this.audioContext.createBufferSource();
-      // source.buffer = audioBuffer;
-      // source.connect(this.audioContext.destination);
-      // // start the source playing
-      // source.start();
-      //
-      // this.audioElement.src = `music://${music.pathHash}`;
-      // this.audioElement.load();
-      // this.progress = 0;
-      // this.publishState();
+      this.activeMusic = music;
+      this.progress = 0;
+      this.publishState();
     } catch (error) {
       console.log(error);
     }

@@ -1,19 +1,65 @@
-// eslint-disable-next-line no-restricted-globals
-const context = self;
-
 const initAurora = import('./3rdparties/aurora').then((AV) => {
   global.AV = AV;
   import('./3rdparties/alac');
 });
 
-async function decode(fileBuffer) {
+let asset;
+let streamSource;
+
+async function createStreamSource() {
   await initAurora;
-  const fileBufferView = new Uint8Array(fileBuffer);
-  const bufferView = new Uint8Array(new ArrayBuffer(fileBuffer.byteLength));
-  bufferView.set(fileBufferView);
-  const asset = global.AV.Asset.fromBuffer(bufferView.buffer);
+
+  const { EventEmitter } = global.AV;
+
+  class StreamSource extends EventEmitter {
+    constructor() {
+      super();
+
+      this.active = false;
+      this.events = [];
+    }
+
+    emit(event, data) {
+      if (this.active) {
+        super.emit(event, data);
+      } else {
+        this.events.push({ event, data });
+      }
+    }
+
+    start() {
+      this.active = true;
+
+      while (this.events.length > 0) {
+        const { event, data } = this.events.shift();
+        this.emit(event, data);
+      }
+    }
+
+    pause() {
+      this.active = false;
+    }
+
+    reset() {
+      this.pause();
+    }
+  }
+
+  streamSource = new StreamSource();
+}
+
+async function startDecoder() {
+  await initAurora;
+
+  const { Asset } = global.AV;
+
+  asset = new Asset(streamSource);
 
   let format;
+
+  asset.on('duration', (duration) => {
+    postMessage({ duration });
+  });
 
   asset.on('format', (f) => {
     format = f;
@@ -37,12 +83,35 @@ async function decode(fileBuffer) {
       }
     }
 
-    context.postMessage(outputBuffer);
+    postMessage(outputBuffer);
   });
+
+  asset.on('error', (error) => postMessage(error));
 
   asset.start();
 }
 
 onmessage = async (event) => {
-  await decode(event.data);
+  if (event.data === 'start') {
+    if (asset !== undefined) {
+      asset.stop();
+    }
+    if (streamSource === undefined) {
+      await createStreamSource();
+    } else {
+      streamSource.reset();
+    }
+    await startDecoder();
+  } else if (event.data === 'done') {
+    streamSource.emit('done');
+  } else {
+    const { Buffer: AVBuffer } = global.AV;
+    const sharedBufferView = new Uint8Array(event.data);
+    const bufferView = new Uint8Array(
+      new ArrayBuffer(sharedBufferView.byteLength)
+    );
+
+    bufferView.set(sharedBufferView);
+    streamSource.emit('data', new AVBuffer(bufferView.buffer));
+  }
 };
