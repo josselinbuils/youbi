@@ -1,59 +1,76 @@
-const initAurora = import('./3rdparties/aurora').then((AV) => {
-  global.AV = AV;
-  import('./3rdparties/alac');
-});
+import AV from './3rdparties/aurora';
 
+global.AV = AV;
+
+const initALACCodec = import('./3rdparties/alac');
 let asset;
-let streamSource;
+let fetchSource;
 
-async function createStreamSource() {
-  await initAurora;
+class FetchSource extends AV.EventEmitter {
+  constructor(url) {
+    super();
 
-  const { EventEmitter } = global.AV;
+    this.active = false;
+    this.done = false;
+    this.events = [];
+    this.url = url;
+  }
 
-  class StreamSource extends EventEmitter {
-    constructor() {
-      super();
-
-      this.active = false;
-      this.events = [];
-    }
-
-    emit(event, data) {
-      if (this.active) {
-        super.emit(event, data);
-      } else {
-        this.events.push({ event, data });
-      }
-    }
-
-    start() {
-      this.active = true;
-
-      while (this.events.length > 0) {
-        const { event, data } = this.events.shift();
-        this.emit(event, data);
-      }
-    }
-
-    pause() {
-      this.active = false;
-    }
-
-    reset() {
-      this.pause();
+  emit(event, data) {
+    if (this.active) {
+      super.emit(event, data);
+    } else {
+      this.events.push({ event, data });
     }
   }
 
-  streamSource = new StreamSource();
+  async start() {
+    this.active = true;
+
+    while (this.events.length > 0) {
+      const { event, data } = this.events.shift();
+      this.emit(event, data);
+    }
+
+    if (this.reader === undefined) {
+      const response = await fetch(this.url);
+      this.reader = response.body?.getReader();
+    }
+
+    if (this.reader === undefined) {
+      this.emit('error', new Error('Unable to get body reader'));
+      return;
+    }
+
+    while (this.active && !this.done) {
+      // eslint-disable-next-line no-await-in-loop
+      const { value, done } = await this.reader.read();
+
+      if (value !== undefined) {
+        this.emit('data', new AV.Buffer(value.buffer));
+      }
+
+      if (done) {
+        this.done = true;
+        this.emit('done');
+        break;
+      }
+    }
+  }
+
+  pause() {
+    this.active = false;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  reset() {}
 }
 
-async function startDecoder() {
-  await initAurora;
+async function startDecoder(url) {
+  await initALACCodec;
 
-  const { Asset } = global.AV;
-
-  asset = new Asset(streamSource);
+  fetchSource = new FetchSource(url);
+  asset = new AV.Asset(fetchSource);
 
   let format;
 
@@ -91,27 +108,16 @@ async function startDecoder() {
   asset.start();
 }
 
-onmessage = async (event) => {
-  if (event.data === 'start') {
-    if (asset !== undefined) {
-      asset.stop();
-    }
-    if (streamSource === undefined) {
-      await createStreamSource();
-    } else {
-      streamSource.reset();
-    }
-    await startDecoder();
-  } else if (event.data === 'done') {
-    streamSource.emit('done');
-  } else {
-    const { Buffer: AVBuffer } = global.AV;
-    const sharedBufferView = new Uint8Array(event.data);
-    const bufferView = new Uint8Array(
-      new ArrayBuffer(sharedBufferView.byteLength)
-    );
-
-    bufferView.set(sharedBufferView);
-    streamSource.emit('data', new AVBuffer(bufferView.buffer));
+function stopDecoder() {
+  if (fetchSource !== undefined) {
+    fetchSource.pause();
   }
+  if (asset !== undefined) {
+    asset.stop();
+  }
+}
+
+onmessage = async (event) => {
+  stopDecoder();
+  await startDecoder(event.data);
 };

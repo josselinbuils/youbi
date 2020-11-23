@@ -206,32 +206,7 @@ export class AudioController {
       }
     };
 
-    const response = await fetch(`music://${music.pathHash}`);
-    const reader = response.body?.getReader();
-
-    if (reader !== undefined) {
-      worker.postMessage('start');
-
-      (async () => {
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-          // eslint-disable-next-line no-await-in-loop
-          const { value, done } = await reader.read();
-
-          if (value !== undefined) {
-            const sharedBuffer = new SharedArrayBuffer(value.byteLength);
-            const sharedBufferView = new Uint8Array(sharedBuffer);
-            sharedBufferView.set(value);
-            worker.postMessage(sharedBuffer);
-          }
-
-          if (done) {
-            worker.postMessage('done');
-            break;
-          }
-        }
-      })();
-    }
+    worker.postMessage(`music://${music.pathHash}`);
   }
 
   private async loadMusic(music: Music): Promise<void> {
