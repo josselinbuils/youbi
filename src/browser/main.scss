@@ -3,6 +3,10 @@ $fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
 @import '~@fortawesome/fontawesome-free/scss/fontawesome';
 @import '~@fortawesome/fontawesome-free/scss/solid.scss';
 
+* {
+  user-select: none;
+}
+
 body,
 html,
 [id='root'] {

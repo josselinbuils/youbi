@@ -6,4 +6,11 @@ declare module '*.module.scss' {
   export default styles;
 }
 
+declare module 'worker-loader!*' {
+  class WebpackWorker extends Worker {
+    constructor();
+  }
+  export = WebpackWorker;
+}
+
 declare var __webpack_public_path__: string;

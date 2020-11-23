@@ -1,9 +1,9 @@
 import request from 'request-promise-native';
 import { LASTFM_API_KEY } from '../config.json';
-import { Music } from '../shared/interfaces/Music';
-import { validate } from '../shared/utils';
+import { Music } from '../shared/Music';
 import { Logger } from './Logger';
 import { PromiseQueue } from './PromiseQueue';
+import { validate } from './validate';
 
 export class LastfmAPI {
   private cache = {} as { [key: string]: Promise<string> };

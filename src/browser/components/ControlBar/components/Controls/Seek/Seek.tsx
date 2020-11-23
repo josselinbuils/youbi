@@ -1,6 +1,6 @@
-import moment from 'moment';
+import dayjs from 'dayjs';
 import React, { FC, useLayoutEffect, useState } from 'react';
-import { Music } from '../../../../../../shared/interfaces/Music';
+import { Music } from '../../../../../../shared/Music';
 import styles from './Seek.module.scss';
 
 export const Seek: FC<Props> = ({ activeMusic, progress }) => {
@@ -10,7 +10,7 @@ export const Seek: FC<Props> = ({ activeMusic, progress }) => {
   useLayoutEffect(() => {
     setReadableDuration(
       activeMusic !== undefined
-        ? moment.utc(activeMusic.duration * 1000).format('mm:ss')
+        ? dayjs(activeMusic.duration * 1000).format('mm:ss')
         : '00:00'
     );
   }, [activeMusic]);

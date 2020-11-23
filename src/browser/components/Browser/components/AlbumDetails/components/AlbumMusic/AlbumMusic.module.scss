@@ -1,5 +1,5 @@
 .albumMusic {
-  padding: 4px 10px;
+  padding: 8px 10px;
   border-radius: 3px;
   border: none;
   appearance: none;
@@ -9,21 +9,21 @@
   width: 100%;
   text-align: left;
   font-size: 14px;
+  line-height: 16px;
+  position: relative;
 }
 
 .duration {
   float: right;
 }
 
-.number,
 .playing {
-  display: inline-block;
-  width: 25px;
-  vertical-align: top;
-}
-
-.playing {
-  font-size: 19px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  line-height: 32px;
+  left: -24px;
+  font-size: 16px;
   vertical-align: middle;
 }
 

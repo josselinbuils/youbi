@@ -1,6 +1,6 @@
 export function computeTileSize(
   containerWidth: number,
-  itemMargin: number,
+  tileMargin: number,
   preferredItemWidth: number,
   minItemsByRow: number,
   maxItemsByRow: number
@@ -11,14 +11,14 @@ export function computeTileSize(
   let lineWidth: number | undefined;
 
   for (let i = minItemsByRow; i <= maxItemsByRow; i++) {
-    const width = Math.floor((containerWidth - (i + 1) * itemMargin) / i);
+    const width = Math.floor((containerWidth - (i + 1) * tileMargin) / i);
 
     dWidths[i] = Math.abs(width - preferredItemWidth);
 
     if (i === minItemsByRow || (width > 0 && dWidths[i] < dWidths[i - 1])) {
       tileSize = width;
       tilesByLine = i;
-      lineWidth = width * i + (i - 1) * itemMargin;
+      lineWidth = width * i + (i - 1) * tileMargin;
     }
   }
 

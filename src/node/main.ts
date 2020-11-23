@@ -1,14 +1,13 @@
 /* eslint-disable no-throw-literal */
 import 'source-map-support/register';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, protocol } from 'electron';
 import electronWindowState from 'electron-window-state';
 import ipc from 'ipc-promise';
 import { join } from 'path';
 import { format } from 'url';
-import { Command } from '../shared/interfaces/Command';
+import { Command } from '../shared/Command';
 import { Browser } from './Browser';
 import { Logger } from './Logger';
-import { Player } from './Player';
 
 const logger = Logger.create('Main');
 
@@ -18,12 +17,18 @@ export class Main {
   static init(): void {
     logger.debug('init()');
 
+    protocol.registerSchemesAsPrivileged([
+      {
+        scheme: 'music',
+        privileges: { secure: true, standard: true, supportFetchAPI: true },
+      },
+    ]);
+
     app.on('ready', () => {
       this.createMainWindow();
 
       const browser = Browser.create(app.getPath('userData'));
-      const player = Player.create();
-      const executors = { browser, player };
+      const executors = { browser };
 
       Object.entries(executors).forEach(([name, executor]) => {
         ipc.on(name, async (command: Command) => {

@@ -1,4 +1,4 @@
-import { Music } from '../../../../../../shared/interfaces/Music';
+import { Music } from '../../../../../../shared/Music';
 
 export interface Column {
   musics: Music[];

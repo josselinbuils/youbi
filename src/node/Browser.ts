@@ -1,17 +1,20 @@
 /* eslint-disable no-await-in-loop */
 import { createHash } from 'crypto';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { protocol } from 'electron';
 import { lstatSync, pathExistsSync, readdir } from 'fs-extra';
 import jimp from 'jimp';
-import moment from 'moment';
 import musicMetadata from 'music-metadata';
 import { join } from 'path';
-import { Music } from '../shared/interfaces/Music';
-import { validate } from '../shared/utils';
+import { Music } from '../shared/Music';
 import { COVERS_FOLDER } from './constants';
 import { LastfmAPI } from './LastfmAPI';
 import { Logger } from './Logger';
 import { Store } from './Store';
+import { validate } from './validate';
+
+dayjs.extend(relativeTime);
 
 export class Browser {
   private coversPath = join(this.appPathData, COVERS_FOLDER);
@@ -42,7 +45,9 @@ export class Browser {
       year,
     } = common;
     const { duration, sampleRate } = format;
-    const readableDuration = moment.utc((duration || 0) * 1000).format('mm:ss');
+    const readableDuration = dayjs((duration || 0) * 1000).format('mm:ss');
+    const pathHash = createHash('md5').update(path).digest('hex');
+
     return {
       album,
       albumArtist: albumartist,
@@ -54,6 +59,7 @@ export class Browser {
       duration,
       genre,
       path,
+      pathHash,
       picture,
       readableDuration,
       sampleRate,
@@ -108,7 +114,7 @@ export class Browser {
           const now = Date.now();
           const endTime =
             now + ((musicPaths.length - i) * (now - startTime)) / i;
-          remainingTime = ` (${moment().to(endTime, true)} remaining)`;
+          remainingTime = ` (${dayjs().to(endTime, true)} remaining)`;
         }
 
         this.logger.debug(
@@ -138,9 +144,22 @@ export class Browser {
     private readonly store: Store
   ) {
     logger.debug('constructor()');
+
     protocol.registerFileProtocol('cover', (request, callback) => {
       const coverFileName = request.url.substr(8);
       callback(join(this.coversPath, coverFileName));
+    });
+
+    protocol.registerFileProtocol('music', (request, callback) => {
+      const musics = this.store.get('musicList').musics as Music[];
+      const pathHash = request.url.substr(8).split('/')[0];
+      const musicPath = musics.find((music) => music.pathHash === pathHash);
+
+      if (musicPath === undefined) {
+        callback({ statusCode: 404 });
+      } else {
+        callback(musicPath);
+      }
     });
   }
 

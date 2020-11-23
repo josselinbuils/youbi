@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import React, { FC } from 'react';
 import styles from './MusicInfo.module.scss';
-import { Music } from '../../../../../shared/interfaces/Music';
+import { Music } from '../../../../../shared/Music';
 
 export const MusicInfo: FC<Props> = ({ activeMusic }) => (
   <div className={styles.musicInfo}>

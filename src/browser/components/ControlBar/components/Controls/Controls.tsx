@@ -1,14 +1,14 @@
 import cn from 'classnames';
-import React, { FC, useState } from 'react';
+import React, { FC } from 'react';
+import { useAudio } from '../../../AudioProvider/useAudio';
 import styles from './Controls.module.scss';
-import { PlayerState } from '../../../../../shared/constants';
 import { Seek } from './Seek/Seek';
-import { Music } from '../../../../../shared/interfaces/Music';
 
-export const Controls: FC<Props> = ({ activeMusic }) => {
-  const [random, setRandom] = useState(false);
-  const [repeat, setRepeat] = useState(false);
-  const playerState = undefined;
+export const Controls: FC = () => {
+  const { audioController, audioState } = useAudio();
+
+  const { next, play, prev, toggleRandom, toggleRepeat } = audioController;
+  const { activeMusic, paused, random, repeat } = audioState;
 
   return (
     <div className={styles.controls}>
@@ -18,59 +18,50 @@ export const Controls: FC<Props> = ({ activeMusic }) => {
           className={cn(styles.button, styles.randomButton, {
             [styles.checked]: random,
           })}
-          onClick={() => setRandom(!random)}
+          onClick={toggleRandom}
           type="button"
         >
-          <i className="fas fa-random" aria-hidden="true" />
+          <i aria-hidden="true" className="fas fa-random" />
         </button>
         <button
           aria-label="previous"
           className={cn(styles.button, styles.prevButton)}
-          onClick={() => {}}
+          onClick={prev}
           type="button"
         >
-          <i className="fas fa-step-backward" aria-hidden="true" />
+          <i aria-hidden="true" className="fas fa-step-backward" />
         </button>
         <button
           aria-label="play"
           className={cn(styles.button, styles.playButton)}
-          onClick={() => {}}
+          onClick={play}
           type="button"
         >
           <i
-            className={cn(
-              'fa',
-              playerState !== PlayerState.Playing
-                ? 'fa-play-circle'
-                : 'fa-pause-circle'
-            )}
             aria-hidden="true"
+            className={cn('fa', paused ? 'fa-play-circle' : 'fa-pause-circle')}
           />
         </button>
         <button
           aria-label="next"
           className={cn(styles.button, styles.nextButton)}
-          onClick={() => {}}
+          onClick={next}
           type="button"
         >
-          <i className="fas fa-step-forward" aria-hidden="true" />
+          <i aria-hidden="true" className="fas fa-step-forward" />
         </button>
         <button
           aria-label="toggle repeat"
           className={cn(styles.button, styles.repeatButton, {
             [styles.checked]: repeat,
           })}
-          onClick={() => setRepeat(!repeat)}
+          onClick={toggleRepeat}
           type="button"
         >
-          <i className="fas fa-redo" aria-hidden="true" />
+          <i aria-hidden="true" className="fas fa-redo" />
         </button>
       </div>
       <Seek activeMusic={activeMusic} progress={0} />
     </div>
   );
 };
-
-interface Props {
-  activeMusic: Music | undefined;
-}

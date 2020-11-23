@@ -10,6 +10,7 @@ export interface Music {
   genre: string[];
   coverURL?: string;
   path: string;
+  pathHash: string;
   picture?: { data: any; format: string }[];
   readableDuration: string;
   sampleRate: number;

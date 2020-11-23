@@ -18,10 +18,10 @@ import { getAlbums } from './utils/getAlbums';
 import { AlbumDetails } from './components/AlbumDetails/AlbumDetails';
 import { getColorPalette } from './utils/getColorPalette';
 
-const ITEM_MARGIN_PX = 20;
-const MAX_ITEMS_BY_ROW = 30;
-const MIN_ITEMS_BY_ROW = 4;
-const PREFERRED_ITEM_WIDTH_PX = 200;
+const TILE_MARGIN_PX = 20;
+const MAX_TILES_BY_ROW = 30;
+const MIN_TILES_BY_ROW = 2;
+const PREFERRED_TILE_WIDTH_PX = 200;
 
 export const Browser: FC<Props> = ({ className }) => {
   const [activeAlbum, setActiveAlbum] = useState<Album>();
@@ -36,10 +36,10 @@ export const Browser: FC<Props> = ({ className }) => {
     if (browserElementRef.current !== null) {
       const res = computeTileSize(
         browserElementRef.current.offsetWidth,
-        ITEM_MARGIN_PX,
-        PREFERRED_ITEM_WIDTH_PX,
-        MIN_ITEMS_BY_ROW,
-        MAX_ITEMS_BY_ROW
+        TILE_MARGIN_PX,
+        PREFERRED_TILE_WIDTH_PX,
+        MIN_TILES_BY_ROW,
+        MAX_TILES_BY_ROW
       );
       const linesCount = Math.ceil(albums.length / res.tilesByLine);
 

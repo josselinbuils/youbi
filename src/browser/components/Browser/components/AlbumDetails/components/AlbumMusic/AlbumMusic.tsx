@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import React, { FC, HTMLAttributes } from 'react';
-import { Music } from '../../../../../../../shared/interfaces/Music';
+import { Music } from '../../../../../../../shared/Music';
 import styles from './AlbumMusic.module.scss';
 
 export const AlbumMusic: FC<Props> = ({
@@ -21,11 +21,11 @@ export const AlbumMusic: FC<Props> = ({
     type="button"
     {...forwardedProp}
   >
-    {!isPlayed && <span className={styles.number}>{music.track.no}</span>}
     {isPlayed && (
       <i
-        className={cn(styles.playing, 'fa', 'fa-volume-down')}
         aria-hidden="true"
+        className={cn('fa', 'fa-volume-up', styles.playing)}
+        style={{ color: colorPalette[1] }}
       />
     )}
     <span className={styles.title}>{music.title}</span>

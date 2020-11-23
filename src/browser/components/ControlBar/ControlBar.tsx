@@ -2,7 +2,7 @@ import cn from 'classnames';
 import React, { FC, useState } from 'react';
 import styles from './ControlBar.module.scss';
 import { MusicInfo } from './components/MusicInfo/MusicInfo';
-import { Music } from '../../../shared/interfaces/Music';
+import { Music } from '../../../shared/Music';
 import { Controls } from './components/Controls/Controls';
 
 export const ControlBar: FC<Props> = ({ className }) => {
@@ -19,7 +19,7 @@ export const ControlBar: FC<Props> = ({ className }) => {
         <MusicInfo activeMusic={activeMusic} />
       </div>
       <div className={styles.center}>
-        <Controls activeMusic={activeMusic} />
+        <Controls />
       </div>
       <div className={styles.right} />
     </div>
