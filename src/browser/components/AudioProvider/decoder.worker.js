@@ -93,9 +93,9 @@ async function startDecoder(url) {
     const outputBuffer = new SharedArrayBuffer(buffer.byteLength);
     const outputBufferView = new Float32Array(outputBuffer);
 
-    for (let c = 0; c < channelsPerFrame; c++) {
+    for (let c = 0 | 0; c < channelsPerFrame; c++) {
       for (
-        let i = 0, j = c;
+        let i = 0 | 0, j = c | 0;
         i < channelBufferLength;
         i++, j += channelsPerFrame
       ) {
