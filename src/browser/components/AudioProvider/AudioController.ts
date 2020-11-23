@@ -4,8 +4,6 @@ import dayjs from 'dayjs';
 import DecodingWorker from 'worker-loader!./decoder.worker';
 import { Music } from '../../../shared/Music';
 
-const worker = new DecodingWorker();
-
 export class AudioController {
   audioStateSubject: Subject<AudioState>;
 
@@ -13,6 +11,11 @@ export class AudioController {
   private readonly audioContext = new AudioContext();
   private readonly audioElement = new Audio();
   private currentTime = '00:00';
+  private currentWorkerIndex = 0;
+  private readonly decodingWorkerPool = [
+    new DecodingWorker(),
+    new DecodingWorker(),
+  ];
   private get paused(): boolean {
     return this.audioElement.paused;
   }
@@ -34,6 +37,10 @@ export class AudioController {
       this.timeUpdateListener
     );
     this.audioElement.pause();
+
+    while (this.decodingWorkerPool.length > 0) {
+      this.decodingWorkerPool.shift()?.terminate();
+    }
   }
 
   getState(): AudioState {
@@ -65,7 +72,7 @@ export class AudioController {
 
     const { paused } = this;
 
-    this.loadMusic(this.playlist[newIndex]);
+    await this.loadMusic(this.playlist[newIndex]);
 
     if (!paused) {
       await this.play();
@@ -115,7 +122,7 @@ export class AudioController {
 
     const { paused } = this;
 
-    this.loadMusic(this.playlist[newIndex]);
+    await this.loadMusic(this.playlist[newIndex]);
 
     if (!paused) {
       await this.play();
@@ -149,78 +156,91 @@ export class AudioController {
     this.publishState();
   };
 
-  private async decode(music: Music): Promise<void> {
-    let duration: number;
-    let format: any;
-    let audioBuffer: AudioBuffer;
-    let offset = 0;
-    let started = false;
+  private async decode(music: Music): Promise<MediaStream> {
+    return new Promise((resolve) => {
+      const { currentWorkerIndex, decodingWorkerPool } = this;
+      let duration: number;
+      let format: any;
+      let audioBuffer: AudioBuffer;
+      let offset = 0;
 
-    worker.onerror = (message: ErrorEvent) => console.error(message);
+      const previousWorker = decodingWorkerPool[currentWorkerIndex];
+      previousWorker.onerror = null;
+      previousWorker.onmessage = null;
+      previousWorker.postMessage('stop');
 
-    worker.onmessage = ({ data }: MessageEvent) => {
-      if (data?.duration) {
-        ({ duration } = data);
-      } else if (data?.format) {
-        ({ format } = data);
-      } else if (data instanceof SharedArrayBuffer) {
-        const { channelsPerFrame, sampleRate } = format;
-        const buffer = new Float32Array(data);
-        const channelBufferLength = buffer.length / channelsPerFrame;
+      this.currentWorkerIndex =
+        (currentWorkerIndex + 1) % decodingWorkerPool.length;
 
-        if (audioBuffer === undefined) {
-          if (duration === undefined) {
-            throw new Error('Unable to retrieve duration');
+      const decodingWorker = decodingWorkerPool[this.currentWorkerIndex];
+
+      decodingWorker.onerror = (message: ErrorEvent) => console.error(message);
+
+      decodingWorker.onmessage = ({ data }: MessageEvent) => {
+        if (data?.duration) {
+          ({ duration } = data);
+        } else if (data?.format) {
+          ({ format } = data);
+        } else if (data instanceof SharedArrayBuffer) {
+          const { channelsPerFrame, sampleRate } = format;
+          const buffer = new Float32Array(data);
+          const channelBufferLength = buffer.length / channelsPerFrame;
+
+          if (audioBuffer === undefined) {
+            if (duration === undefined) {
+              throw new Error('Unable to retrieve duration');
+            }
+
+            audioBuffer = new AudioBuffer({
+              length: Math.ceil((duration / 1000) * sampleRate),
+              numberOfChannels: channelsPerFrame,
+              sampleRate,
+            });
+
+            const source = this.audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.start();
+
+            const streamNode = this.audioContext.createMediaStreamDestination();
+            source.connect(streamNode);
+
+            resolve(streamNode.stream);
           }
 
-          audioBuffer = new AudioBuffer({
-            length: Math.ceil((duration / 1000) * sampleRate),
-            numberOfChannels: channelsPerFrame,
-            sampleRate,
-          });
+          for (let c = 0; c < channelsPerFrame; c++) {
+            audioBuffer.copyToChannel(
+              buffer.slice(
+                c * channelBufferLength,
+                (c + 1) * channelBufferLength
+              ),
+              c,
+              offset
+            );
+          }
+
+          offset += channelBufferLength;
+        } else {
+          console.log(data);
         }
+      };
 
-        for (let c = 0; c < channelsPerFrame; c++) {
-          audioBuffer.copyToChannel(
-            buffer.slice(
-              c * channelBufferLength,
-              (c + 1) * channelBufferLength
-            ),
-            c,
-            offset
-          );
-        }
-
-        offset += channelBufferLength;
-
-        if (!started) {
-          started = true;
-          const source = this.audioContext.createBufferSource();
-          source.buffer = audioBuffer;
-          source.connect(this.audioContext.destination);
-          // start the source playing
-          source.start();
-        }
-      } else {
-        console.log(data);
-      }
-    };
-
-    worker.postMessage(`music://${music.pathHash}`);
+      decodingWorker.postMessage(`music://${music.pathHash}`);
+    });
   }
 
   private async loadMusic(music: Music): Promise<void> {
     if (!this.playlist.includes(music)) {
       throw new Error('playlist does not contain the given music');
     }
-    try {
-      await this.decode(music);
-      this.activeMusic = music;
-      this.progress = 0;
-      this.publishState();
-    } catch (error) {
-      console.log(error);
+    if (!this.paused) {
+      this.audioElement.pause();
     }
+    this.activeMusic = music;
+    // this.audioElement.src = `music://${music.pathHash}`;
+    // this.audioElement.load();
+    this.audioElement.srcObject = await this.decode(music);
+    this.progress = 0;
+    this.publishState();
   }
 
   private readonly musicEndListener = async () => {
@@ -238,7 +258,7 @@ export class AudioController {
     const newIndex = Math.round(this.playlist.length * Math.random());
     const { paused } = this.audioElement;
 
-    this.loadMusic(this.playlist[newIndex]);
+    await this.loadMusic(this.playlist[newIndex]);
 
     if (!paused) {
       await this.play();

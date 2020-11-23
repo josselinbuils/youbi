@@ -11,7 +11,6 @@ class FetchSource extends AV.EventEmitter {
     super();
 
     this.active = false;
-    this.done = false;
     this.events = [];
     this.url = url;
   }
@@ -23,6 +22,13 @@ class FetchSource extends AV.EventEmitter {
       this.events.push({ event, data });
     }
   }
+
+  pause() {
+    this.active = false;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  reset() {}
 
   async start() {
     this.active = true;
@@ -42,7 +48,7 @@ class FetchSource extends AV.EventEmitter {
       return;
     }
 
-    while (this.active && !this.done) {
+    while (this.active) {
       // eslint-disable-next-line no-await-in-loop
       const { value, done } = await this.reader.read();
 
@@ -51,19 +57,16 @@ class FetchSource extends AV.EventEmitter {
       }
 
       if (done) {
-        this.done = true;
         this.emit('done');
         break;
       }
     }
   }
 
-  pause() {
-    this.active = false;
+  stop() {
+    this.pause();
+    this.reader?.cancel();
   }
-
-  // eslint-disable-next-line class-methods-use-this
-  reset() {}
 }
 
 async function startDecoder(url) {
@@ -109,15 +112,19 @@ async function startDecoder(url) {
 }
 
 function stopDecoder() {
-  if (fetchSource !== undefined) {
-    fetchSource.pause();
-  }
   if (asset !== undefined) {
     asset.stop();
+  }
+  if (fetchSource !== undefined) {
+    fetchSource.stop();
   }
 }
 
 onmessage = async (event) => {
-  stopDecoder();
-  await startDecoder(event.data);
+  if (event.data === 'stop') {
+    stopDecoder();
+    postMessage('stopped');
+  } else {
+    await startDecoder(event.data);
+  }
 };
