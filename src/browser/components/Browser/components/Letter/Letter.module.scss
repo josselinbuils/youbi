@@ -3,13 +3,12 @@
 $letterSize: 80px;
 
 .letter {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 20px;
   left: 20px;
   width: 0;
   height: 0;
   color: $textColor;
-  margin-bottom: -$letterSize;
   background: $backgroundColor;
   z-index: 1;
   text-align: center;

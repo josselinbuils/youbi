@@ -31,6 +31,7 @@ export const Browser: FC<Props> = ({ className }) => {
   const [tileLines, setTileLines] = useState<Album[][]>([]);
   const browserElementRef = useRef<HTMLElement>(null);
   const cancellersRef = useRef<(() => void)[]>([]);
+  const hideLetterTimeoutRef = useRef<number>();
 
   function computeTileLines() {
     if (browserElementRef.current !== null) {
@@ -107,7 +108,17 @@ export const Browser: FC<Props> = ({ className }) => {
                     : undefined
                 }
                 onClick={() => setAlbum(album)}
-                onIntersect={() => setLetter(album.firstArtistLetter)}
+                onIntersect={() => {
+                  setLetter(album.firstArtistLetter);
+
+                  if (hideLetterTimeoutRef.current !== undefined) {
+                    window.clearTimeout(hideLetterTimeoutRef.current);
+                  }
+                  hideLetterTimeoutRef.current = window.setTimeout(() => {
+                    setLetter(undefined);
+                    hideLetterTimeoutRef.current = undefined;
+                  }, 1000);
+                }}
                 tileSize={tileSize}
               />
             ))}
