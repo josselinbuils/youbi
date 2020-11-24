@@ -33,15 +33,15 @@ export class AudioController {
     this.audioStateSubject = new Subject(this.getState());
   }
 
-  clear(): void {
+  clear = (): void => {
     window.clearInterval(this.interval);
 
     while (this.decodingWorkerPool.length > 0) {
       this.decodingWorkerPool.shift()?.terminate();
     }
-  }
+  };
 
-  getState(): AudioState {
+  getState = (): AudioState => {
     return {
       activeMusic: this.activeMusic,
       currentTime: this.currentReadableTime,
@@ -51,7 +51,7 @@ export class AudioController {
       random: this.random,
       repeat: this.repeat,
     };
-  }
+  };
 
   next = async (): Promise<void> => {
     if (this.activeMusic === undefined) {
@@ -68,16 +68,15 @@ export class AudioController {
       newIndex = 0;
     }
 
-    const { paused } = this;
-
-    await this.loadMusic(this.playlist[newIndex]);
-
-    if (!paused) {
-      this.play();
+    if (this.paused) {
+      await this.loadMusic(this.playlist[newIndex]);
+    } else {
+      await this.playMusic(this.playlist[newIndex]);
     }
   };
 
   pause = () => {
+    this.audioSource?.removeEventListener('ended', this.musicEndListener);
     this.audioSource?.stop();
     delete this.audioSource;
   };
@@ -96,16 +95,13 @@ export class AudioController {
   };
 
   playMusic = async (music: Music): Promise<void> => {
+    await this.loadMusic(music);
+
     if (!this.paused) {
       this.pause();
     }
-    if (
-      this.activeMusic === undefined ||
-      music.path !== this.activeMusic.path
-    ) {
-      await this.loadMusic(music);
-    }
-    this.play();
+    this.initSource();
+    this.publishState();
   };
 
   prev = async (): Promise<void> => {
@@ -123,12 +119,10 @@ export class AudioController {
       newIndex = this.playlist.length - 1;
     }
 
-    const { paused } = this;
-
-    await this.loadMusic(this.playlist[newIndex]);
-
-    if (!paused) {
-      this.play();
+    if (this.paused) {
+      await this.loadMusic(this.playlist[newIndex]);
+    } else {
+      await this.playMusic(this.playlist[newIndex]);
     }
   };
 
@@ -163,7 +157,7 @@ export class AudioController {
     this.publishState();
   };
 
-  private async decode(music: Music): Promise<MediaStream> {
+  private decode = async (music: Music): Promise<MediaStream> => {
     return new Promise((resolve) => {
       const { currentWorkerIndex, decodingWorkerPool } = this;
       let duration: number;
@@ -227,50 +221,54 @@ export class AudioController {
 
       decodingWorker.postMessage(`music://${music.pathHash}`);
     });
-  }
+  };
 
-  private initSource(): void {
+  private initSource = (): void => {
     if (this.audioBuffer === undefined) {
       throw new Error('No audio buffer');
     }
+    this.audioSource?.removeEventListener('ended', this.musicEndListener);
+
     const source = this.audioContext.createBufferSource();
     source.buffer = this.audioBuffer;
-    // source.addEventListener('ended', this.musicEndListener);
+    source.addEventListener('ended', this.musicEndListener);
     source.connect(this.audioContext.destination);
     source.start(0, this.currentTime);
+
     this.audioSource = source;
     this.startTime = performance.now() - this.currentTime * 1000;
-  }
+  };
 
-  private async loadMusic(music: Music): Promise<void> {
+  private loadMusic = async (music: Music): Promise<void> => {
     if (!this.playlist.includes(music)) {
       throw new Error('playlist does not contain the given music');
     }
-    this.activeMusic = music;
-    this.progress = 0;
     this.publishState();
     await this.decode(music);
-  }
-
-  private readonly musicEndListener = async () => {
-    if (!this.repeat) {
-      await this.next();
-    }
-    this.play();
+    this.activeMusic = music;
+    this.currentTime = 0;
+    this.progress = 0;
   };
 
-  private publishState(): void {
+  private musicEndListener = async () => {
+    if (!this.repeat) {
+      await this.next();
+    } else if (this.activeMusic !== undefined) {
+      await this.playMusic(this.activeMusic);
+    }
+  };
+
+  private publishState = (): void => {
     this.audioStateSubject.next(this.getState());
-  }
+  };
 
   private readonly rand = async (): Promise<void> => {
-    const newIndex = Math.round(this.playlist.length * Math.random());
-    const { paused } = this;
+    const newIndex = Math.floor(this.playlist.length * Math.random());
 
-    await this.loadMusic(this.playlist[newIndex]);
-
-    if (!paused) {
-      this.play();
+    if (this.paused) {
+      await this.loadMusic(this.playlist[newIndex]);
+    } else {
+      await this.playMusic(this.playlist[newIndex]);
     }
   };
 
@@ -279,7 +277,10 @@ export class AudioController {
       return;
     }
 
-    this.currentTime = (performance.now() - this.startTime) / 1000;
+    this.currentTime = Math.min(
+      (performance.now() - this.startTime) / 1000,
+      this.activeMusic.duration
+    );
     this.currentReadableTime = dayjs(this.currentTime * 1000).format('mm:ss');
     this.progress =
       Math.round((this.currentTime / this.activeMusic.duration) * 10000) / 100;
