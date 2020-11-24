@@ -6,11 +6,11 @@
 }
 
 .controlBar {
-  font-size: 0.8em;
+  font-size: 14px;
   overflow: hidden;
   color: $textColor;
   display: flex;
-  height: 83px;
+  height: 91px;
   box-sizing: border-box;
   background: lighten($backgroundColor, 5%);
   border-top: 1px solid darken($backgroundColor, 5%);

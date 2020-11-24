@@ -23,6 +23,10 @@
   border-right: 0;
   margin-bottom: -$tileOffset;
 
+  &:last-child {
+    border-bottom: 0;
+  }
+
   &.active {
     transition: max-height $slideDownDuration $slideDownEffect;
     transition-delay: 0.05s;
