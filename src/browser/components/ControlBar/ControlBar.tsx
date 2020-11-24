@@ -2,11 +2,9 @@ import cn from 'classnames';
 import React, { FC, useState } from 'react';
 import styles from './ControlBar.module.scss';
 import { MusicInfo } from './components/MusicInfo/MusicInfo';
-import { Music } from '../../../shared/Music';
 import { Controls } from './components/Controls/Controls';
 
 export const ControlBar: FC<Props> = ({ className }) => {
-  const [activeMusic] = useState<Music>();
   const [isSeeking] = useState(false);
 
   return (
@@ -16,7 +14,7 @@ export const ControlBar: FC<Props> = ({ className }) => {
       })}
     >
       <div className={styles.left}>
-        <MusicInfo activeMusic={activeMusic} />
+        <MusicInfo />
       </div>
       <div className={styles.center}>
         <Controls />
