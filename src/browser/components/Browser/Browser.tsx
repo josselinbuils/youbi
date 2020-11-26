@@ -18,10 +18,11 @@ import { getAlbums } from './utils/getAlbums';
 import { AlbumDetails } from './components/AlbumDetails/AlbumDetails';
 import { getColorPalette } from './utils/getColorPalette';
 
-const TILE_MARGIN_PX = 20;
+const LETTER_HIDE_DELAY_MS = 500;
 const MAX_TILES_BY_ROW = 30;
 const MIN_TILES_BY_ROW = 2;
 const PREFERRED_TILE_WIDTH_PX = 200;
+const TILE_MARGIN_PX = 20;
 
 export const Browser: FC<Props> = ({ className }) => {
   const [activeAlbum, setActiveAlbum] = useState<Album>();
@@ -117,7 +118,7 @@ export const Browser: FC<Props> = ({ className }) => {
                   hideLetterTimeoutRef.current = window.setTimeout(() => {
                     setLetter(undefined);
                     hideLetterTimeoutRef.current = undefined;
-                  }, 1000);
+                  }, LETTER_HIDE_DELAY_MS);
                 }}
                 tileSize={tileSize}
               />

@@ -67,7 +67,7 @@ module.exports = {
   },
   output: {
     path: path.join(process.cwd(), 'dist/browser'),
-    publicPath: '/',
+    publicPath: '',
   },
   plugins: [
     isDevelopment && new ReactRefreshPlugin(),

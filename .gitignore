@@ -1,5 +1,6 @@
 /dist
 /node_modules
+/package
 .DS_Store
 config.json
 *.local
