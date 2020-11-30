@@ -11,7 +11,6 @@ export class AudioController {
   private audioBuffer?: AudioBuffer;
   private readonly audioContext = new AudioContext();
   private audioSource?: AudioBufferSourceNode;
-  private currentReadableTime = '00:00';
   private currentTime = 0;
   private currentWorkerIndex = 0;
   private readonly decodingWorkerPool = [
@@ -23,7 +22,6 @@ export class AudioController {
     return this.audioSource === undefined;
   }
   private playlist: Music[] = [];
-  private progress = 0;
   private random = false;
   private repeat = false;
   private startTime = 0;
@@ -44,16 +42,19 @@ export class AudioController {
   getState = (): AudioState => {
     return {
       activeMusic: this.activeMusic,
-      currentTime: this.currentReadableTime,
+      currentTime: dayjs(this.currentTime * 1000).format('mm:ss'),
       paused: this.paused,
       playlist: this.playlist,
-      progress: this.progress,
+      progress:
+        Math.round(
+          (this.currentTime / (this.activeMusic?.duration ?? 1)) * 10000
+        ) / 100,
       random: this.random,
       repeat: this.repeat,
     };
   };
 
-  next = async (): Promise<void> => {
+  next = async (shouldReturnToFirstMusic = true): Promise<void> => {
     if (this.activeMusic === undefined) {
       return;
     }
@@ -66,6 +67,10 @@ export class AudioController {
 
     if (newIndex >= this.playlist.length) {
       newIndex = 0;
+
+      if (!shouldReturnToFirstMusic) {
+        this.pause();
+      }
     }
 
     if (this.paused) {
@@ -79,6 +84,7 @@ export class AudioController {
     this.audioSource?.removeEventListener('ended', this.musicEndListener);
     this.audioSource?.stop();
     delete this.audioSource;
+    this.publishState();
   };
 
   play = (): void => {
@@ -243,16 +249,15 @@ export class AudioController {
     if (!this.playlist.includes(music)) {
       throw new Error('playlist does not contain the given music');
     }
-    this.publishState();
     await this.decode(music);
     this.activeMusic = music;
     this.currentTime = 0;
-    this.progress = 0;
+    this.publishState();
   };
 
   private musicEndListener = async () => {
     if (!this.repeat) {
-      await this.next();
+      await this.next(false);
     } else if (this.activeMusic !== undefined) {
       await this.playMusic(this.activeMusic);
     }
@@ -281,10 +286,6 @@ export class AudioController {
       (performance.now() - this.startTime) / 1000,
       this.activeMusic.duration
     );
-    this.currentReadableTime = dayjs(this.currentTime * 1000).format('mm:ss');
-    this.progress =
-      Math.round((this.currentTime / this.activeMusic.duration) * 10000) / 100;
-
     this.publishState();
   };
 }

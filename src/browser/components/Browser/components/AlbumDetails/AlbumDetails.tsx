@@ -1,15 +1,15 @@
 import cn from 'classnames';
 import React, { FC, useLayoutEffect, useRef, useState } from 'react';
 import { Music } from '../../../../../shared/Music';
+import { cancelable } from '../../../../utils/cancelable';
+import { useAudio } from '../../../AudioProvider/useAudio';
 import { Album } from '../../interfaces/Album';
 import styles from './AlbumDetails.module.scss';
+import { AlbumMusic } from './components/AlbumMusic/AlbumMusic';
 import { Column } from './interfaces/Column';
 import { computeColumns } from './utils/computeColumns';
-import { validateDiskInfo } from './utils/validateDiskInfo';
-import { AlbumMusic } from './components/AlbumMusic/AlbumMusic';
-import { cancelable } from '../../../../utils/cancelable';
 import { delay } from './utils/delay';
-import { useAudio } from '../../../AudioProvider/useAudio';
+import { validateDiskInfo } from './utils/validateDiskInfo';
 
 const HIDE_DELAY_MS = 500;
 
@@ -18,10 +18,9 @@ export const AlbumDetails: FC<Props> = ({ album }) => {
   const [activeMusic, setActiveMusic] = useState<Music>();
   const [disks, setDisks] = useState<Column[][]>([]);
   const detailsElementRef = useRef(null);
-  const { audioController, audioState } = useAudio();
+  const { audioController } = useAudio();
 
   const { playMusic, setPlaylist } = audioController;
-  const { activeMusic: currentMusic } = audioState;
 
   useLayoutEffect(() => {
     if (album !== undefined) {
@@ -91,7 +90,6 @@ export const AlbumDetails: FC<Props> = ({ album }) => {
                       colorPalette={activeAlbum.colorPalette as string[]}
                       key={music.title}
                       isActive={music === activeMusic}
-                      isPlayed={music === currentMusic}
                       music={music}
                       onClick={async () => {
                         setPlaylist(activeAlbum.musics);

@@ -45,7 +45,7 @@ export const Controls: FC = () => {
         <button
           aria-label="next"
           className={cn(styles.button, styles.nextButton)}
-          onClick={next}
+          onClick={() => next()}
           type="button"
         >
           <i aria-hidden="true" className="fas fa-step-forward" />
