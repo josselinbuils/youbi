@@ -1,11 +1,11 @@
+import { SharedProperties } from '../../../../shared/SharedProperties';
 import { Album } from '../interfaces/Album';
-import { executeNodeCommand } from '../../../utils/executeNodeCommand';
 import { groupBy } from './groupBy';
 
 export async function getAlbums(): Promise<Album[]> {
-  const rawMusics = await executeNodeCommand('browser', 'getMusicList', [
-    '/Volumes/music',
-  ]);
+  const rawMusics = await (window.remote as SharedProperties).getMusicList(
+    '/Volumes/music'
+  );
   const musicsByAlbum = groupBy(rawMusics, 'album');
 
   return Object.entries(musicsByAlbum)

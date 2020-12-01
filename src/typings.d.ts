@@ -14,3 +14,7 @@ declare module 'worker-loader!*' {
 }
 
 declare var __webpack_public_path__: string;
+
+interface Window {
+  remote: unknown;
+}

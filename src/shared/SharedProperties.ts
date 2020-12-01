@@ -1,5 +1,7 @@
-import { BrowserWindow } from 'electron';
-
 export interface SharedProperties {
-  getCurrentElectronWindow?(): BrowserWindow;
+  getMusicList(path: string): Promise<any>;
+  isWindowMaximized(): boolean;
+  maximizeWindow(): void;
+  openDevTools(): void;
+  unmaximizeWindow(): void;
 }

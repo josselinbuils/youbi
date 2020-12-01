@@ -15,14 +15,11 @@ interface Props {
 }
 
 function toggleMaximize() {
-  const electronWindow = (window as SharedProperties).getCurrentElectronWindow?.();
+  const remote = window.remote as SharedProperties;
 
-  if (electronWindow === undefined) {
-    return;
-  }
-  if (electronWindow.isMaximized()) {
-    electronWindow.unmaximize();
+  if (remote.isWindowMaximized()) {
+    remote.unmaximizeWindow();
   } else {
-    electronWindow.maximize();
+    remote.maximizeWindow();
   }
 }

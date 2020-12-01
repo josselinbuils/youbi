@@ -10,9 +10,7 @@ import { ControlBar } from './components/ControlBar/ControlBar';
 export const App: FC = () => {
   useKeyMap({
     'Control+D,Meta+D': () =>
-      (window as SharedProperties)
-        .getCurrentElectronWindow?.()
-        .webContents.openDevTools(),
+      (window.remote as SharedProperties).openDevTools(),
   });
 
   return (

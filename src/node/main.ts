@@ -108,8 +108,8 @@ export class Main {
       backgroundColor: '#111625',
       titleBarStyle: 'hidden',
       webPreferences: {
+        contextIsolation: true,
         enableRemoteModule: true,
-        nodeIntegration: false,
         preload: join(__dirname, 'preload.js'),
       },
     });
