@@ -8,16 +8,8 @@
 }
 
 .details {
-  $slideDownDuration: 0.25s;
-  $slideDownEffect: linear;
-  $slideUpDuration: 0.075s;
-  $slideUpEffect: linear;
-
-  box-sizing: border-box;
   cursor: default;
-  transition: max-height $slideUpDuration $slideUpEffect;
   overflow: hidden;
-  max-height: 0;
   border: $tileOffset solid transparent;
   border-top: 0;
   border-right: 0;
@@ -25,12 +17,6 @@
 
   &:last-child {
     border-bottom: 0;
-  }
-
-  &.active {
-    transition: max-height $slideDownDuration $slideDownEffect;
-    transition-delay: 0.05s;
-    max-height: 1000px;
   }
 }
 

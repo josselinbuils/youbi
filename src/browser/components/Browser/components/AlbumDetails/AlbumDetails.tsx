@@ -1,42 +1,43 @@
 import cn from 'classnames';
 import React, { FC, useLayoutEffect, useRef, useState } from 'react';
 import { Music } from '../../../../../shared/Music';
-import { cancelable } from '../../../../utils/cancelable';
+import { useHeightTransition } from '../../../../hooks/useHeightTransition';
 import { useAudio } from '../../../AudioProvider/useAudio';
 import { Album } from '../../interfaces/Album';
 import styles from './AlbumDetails.module.scss';
 import { AlbumMusic } from './components/AlbumMusic/AlbumMusic';
 import { Column } from './interfaces/Column';
 import { computeColumns } from './utils/computeColumns';
-import { delay } from './utils/delay';
 import { validateDiskInfo } from './utils/validateDiskInfo';
-
-const HIDE_DELAY_MS = 500;
 
 export const AlbumDetails: FC<Props> = ({ album }) => {
   const [activeAlbum, setActiveAlbum] = useState<Album>();
   const [activeMusic, setActiveMusic] = useState<Music>();
   const [disks, setDisks] = useState<Column[][]>([]);
-  const detailsElementRef = useRef(null);
+  const [height, setHeight] = useState(0);
+  const detailsElementRef = useRef<HTMLDivElement>(null);
+  const innerElementRef = useRef<HTMLDivElement>(null);
   const { audioController } = useAudio();
+  const { style, transitionState } = useHeightTransition(!!album, height, {
+    closeDelayMs: 25,
+    closeDurationMs: 125,
+    openDelayMs: 25,
+    openDurationMs: 125,
+  });
 
   const { playMusic, setPlaylist } = audioController;
 
   useLayoutEffect(() => {
     if (album !== undefined) {
       setActiveAlbum(album);
-    } else {
-      const [promise, cancel] = cancelable(delay(HIDE_DELAY_MS));
-      promise.then(setActiveAlbum);
-      return cancel;
     }
   }, [album]);
 
   useLayoutEffect(() => {
-    if (activeAlbum === undefined) {
+    if (album === undefined || transitionState !== 'createDom') {
       return;
     }
-    const { musics } = activeAlbum;
+    const { musics } = album;
     const newDisks = [] as Column[][];
 
     if (musics.length > 0 && validateDiskInfo(musics)) {
@@ -50,16 +51,27 @@ export const AlbumDetails: FC<Props> = ({ album }) => {
       newDisks.push(computeColumns(detailsElementRef, musics));
     }
     setDisks(newDisks);
-  }, [activeAlbum]);
+  }, [album, transitionState]);
 
-  return (
-    <div
-      className={cn(styles.details, { [styles.active]: !!album })}
-      ref={detailsElementRef}
-    >
+  useLayoutEffect(() => {
+    setHeight(
+      (detailsElementRef.current?.getBoundingClientRect()?.height || 0) +
+        (innerElementRef.current?.clientHeight || 0)
+    );
+  }, [disks]);
+
+  useLayoutEffect(() => {
+    if (transitionState === 'closed' && height > 0) {
+      setHeight(0);
+    }
+  }, [height, transitionState]);
+
+  return transitionState !== 'closed' ? (
+    <div className={cn(styles.details)} ref={detailsElementRef} style={style}>
       {activeAlbum?.colorPalette ? (
         <div
           className={styles.inner}
+          ref={innerElementRef}
           style={{ background: activeAlbum.colorPalette[0] }}
         >
           <div
@@ -106,7 +118,7 @@ export const AlbumDetails: FC<Props> = ({ album }) => {
         </div>
       ) : null}
     </div>
-  );
+  ) : null;
 };
 
 interface Props {

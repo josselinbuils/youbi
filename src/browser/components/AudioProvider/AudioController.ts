@@ -18,6 +18,7 @@ export class AudioController {
     new DecodingWorker(),
   ];
   private readonly interval: number;
+  private output?: MediaDeviceInfo;
   private get paused(): boolean {
     return this.audioSource === undefined;
   }
@@ -29,6 +30,11 @@ export class AudioController {
   constructor() {
     this.interval = window.setInterval(this.timeUpdateListener, 500);
     this.audioStateSubject = new Subject(this.getState());
+    this.getOutputs().then((outputs) => {
+      this.output = outputs.find(
+        ({ deviceId }) => deviceId === 'default'
+      ) as MediaDeviceInfo;
+    });
   }
 
   clear = (): void => {
@@ -39,9 +45,15 @@ export class AudioController {
     }
   };
 
+  getOutputs = async (): Promise<MediaDeviceInfo[]> => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.filter((device) => device.kind === 'audiooutput');
+  };
+
   getState = (): AudioState => {
     return {
       activeMusic: this.activeMusic,
+      output: this.output,
       currentTime: dayjs(this.currentTime * 1000).format('mm:ss'),
       paused: this.paused,
       playlist: this.playlist,
@@ -87,13 +99,13 @@ export class AudioController {
     this.publishState();
   };
 
-  play = (): void => {
+  play = async (): Promise<void> => {
     if (this.activeMusic === undefined) {
       return;
     }
 
     if (this.paused) {
-      this.initSource();
+      await this.initSource();
     } else {
       this.pause();
     }
@@ -106,7 +118,7 @@ export class AudioController {
     if (!this.paused) {
       this.pause();
     }
-    this.initSource();
+    await this.initSource();
     this.publishState();
   };
 
@@ -146,6 +158,16 @@ export class AudioController {
       Math.max(Math.min(Math.round(value * duration), duration - 1), 0)
     );
     this.initSource();
+  };
+
+  setOutput = async (output: MediaDeviceInfo): Promise<void> => {
+    this.output = output;
+
+    if (this.activeMusic !== undefined && !this.paused) {
+      this.pause();
+      await this.initSource();
+    }
+    this.publishState();
   };
 
   setPlaylist = (playlist: Music[]): void => {
@@ -221,7 +243,7 @@ export class AudioController {
 
           offset += channelBufferLength;
         } else {
-          console.log(data);
+          throw new Error(`Unexpected data: ${data}`);
         }
       };
 
@@ -229,17 +251,27 @@ export class AudioController {
     });
   };
 
-  private initSource = (): void => {
+  private initSource = async (): Promise<void> => {
     if (this.audioBuffer === undefined) {
       throw new Error('No audio buffer');
+    }
+    if (this.output === undefined) {
+      throw new Error('No output');
     }
     this.audioSource?.removeEventListener('ended', this.musicEndListener);
 
     const source = this.audioContext.createBufferSource();
     source.buffer = this.audioBuffer;
     source.addEventListener('ended', this.musicEndListener);
-    source.connect(this.audioContext.destination);
     source.start(0, this.currentTime);
+
+    const streamNode = this.audioContext.createMediaStreamDestination();
+    source.connect(streamNode);
+
+    const audioElement = new Audio();
+    await (audioElement as any).setSinkId(this.output.deviceId);
+    audioElement.srcObject = streamNode.stream;
+    await audioElement.play();
 
     this.audioSource = source;
     this.startTime = performance.now() - this.currentTime * 1000;
@@ -293,6 +325,7 @@ export class AudioController {
 export interface AudioState {
   activeMusic?: Music;
   currentTime: string;
+  output: MediaDeviceInfo | undefined;
   paused: boolean;
   playlist: Music[];
   progress: number;

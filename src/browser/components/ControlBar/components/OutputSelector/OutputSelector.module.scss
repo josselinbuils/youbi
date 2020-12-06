@@ -1,0 +1,54 @@
+@import '../../../../App.constants';
+
+.backdrop {
+  position: fixed;
+  top: 25px;
+  right: 0;
+  bottom: 80px;
+  left: 0;
+}
+
+.inner {
+  padding: 10px 0 7px 0;
+}
+
+.output {
+  appearance: none;
+  color: inherit;
+  background-color: inherit;
+  font: inherit;
+  border: none;
+  padding: 5px 25px;
+  font-size: 14px;
+  width: 100%;
+  text-align: left;
+  outline: none;
+
+  &.active {
+    background: $primaryColor;
+  }
+
+  &:hover:not(.active) {
+    background: $secondaryColor;
+  }
+}
+
+.outputSelector {
+  position: absolute;
+  right: 0;
+  bottom: 90px;
+  width: 210px;
+  background: lighten($backgroundColor, 5%);
+  border: 1px solid darken($backgroundColor, 5%);
+  border-right: none;
+  border-bottom: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: $textColor;
+}
+
+.outputSelectorButton {
+  margin-top: 5px;
+  height: 52px;
+  font-size: 20px;
+}

@@ -1,0 +1,27 @@
+@import '../../../../App.constants';
+
+.button {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 15px;
+  border: 0;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  appearance: none;
+  outline: none;
+  padding: 10px;
+
+  & + .button {
+    margin-left: 0 !important;
+  }
+
+  &:active,
+  &.checked {
+    color: $primaryColor;
+  }
+
+  &:hover:not(:active, .checked) {
+    color: lighten($textColor, 15%);
+  }
+}

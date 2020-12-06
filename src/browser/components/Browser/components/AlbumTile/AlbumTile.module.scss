@@ -21,8 +21,8 @@
   left: 50%;
   margin-left: -8px;
   top: calc(100% + #{$tileOffset} - #{$size});
-  transition: height 0.025s linear;
-  transition-delay: 0.075s;
+  transition: height 25ms linear;
+  transition-delay: 150ms;
 
   &.noTransition {
     transition-delay: 0s;
@@ -34,7 +34,7 @@
   }
 
   &.shown {
-    transition: height 0.05s linear;
+    transition: height 25ms linear;
     height: $size;
   }
 

@@ -1,8 +1,9 @@
 import cn from 'classnames';
 import React, { FC } from 'react';
 import { useAudio } from '../../../AudioProvider/useAudio';
-import styles from './Controls.module.scss';
 import { SeekBar } from './SeekBar/SeekBar';
+import { Button } from '../Button/Button';
+import styles from './Controls.module.scss';
 
 export const Controls: FC = () => {
   const { audioController, audioState } = useAudio();
@@ -13,53 +14,42 @@ export const Controls: FC = () => {
   return (
     <div className={styles.controls}>
       <div>
-        <button
+        <Button
           aria-label="toggle random"
-          className={cn(styles.button, styles.randomButton, {
-            [styles.checked]: random,
-          })}
+          checked={random}
+          className={styles.randomButton}
           onClick={toggleRandom}
-          type="button"
         >
           <i aria-hidden="true" className="fas fa-random" />
-        </button>
-        <button
+        </Button>
+        <Button
           aria-label="previous"
-          className={cn(styles.button, styles.prevButton)}
+          className={styles.prevButton}
           onClick={prev}
-          type="button"
         >
           <i aria-hidden="true" className="fas fa-step-backward" />
-        </button>
-        <button
-          aria-label="play"
-          className={cn(styles.button, styles.playButton)}
-          onClick={play}
-          type="button"
-        >
+        </Button>
+        <Button aria-label="play" className={styles.playButton} onClick={play}>
           <i
             aria-hidden="true"
             className={cn('fa', paused ? 'fa-play-circle' : 'fa-pause-circle')}
           />
-        </button>
-        <button
+        </Button>
+        <Button
           aria-label="next"
-          className={cn(styles.button, styles.nextButton)}
+          className={styles.nextButton}
           onClick={() => next()}
-          type="button"
         >
           <i aria-hidden="true" className="fas fa-step-forward" />
-        </button>
-        <button
+        </Button>
+        <Button
           aria-label="toggle repeat"
-          className={cn(styles.button, styles.repeatButton, {
-            [styles.checked]: repeat,
-          })}
+          checked={repeat}
+          className={styles.repeatButton}
           onClick={toggleRepeat}
-          type="button"
         >
           <i aria-hidden="true" className="fas fa-redo" />
-        </button>
+        </Button>
       </div>
       <SeekBar />
     </div>
