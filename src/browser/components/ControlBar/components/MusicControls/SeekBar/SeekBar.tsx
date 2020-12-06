@@ -1,17 +1,13 @@
 import React, { createRef, FC } from 'react';
 import { useAudio } from '../../../../AudioProvider/useAudio';
+import { useDragAndDrop } from '../../../hooks/useDragAndDrop';
 import { ProgressBar } from '../../ProgressBar/ProgressBar';
-import { useDragAndDrop } from './useDragAndDrop';
 import styles from './SeekBar.module.scss';
 
 export const SeekBar: FC = () => {
   const { audioController, audioState } = useAudio();
   const progressBarRef = createRef<HTMLDivElement>();
   const seekStartHandler = useDragAndDrop(onSeekStart);
-
-  if (audioController === undefined || audioState === undefined) {
-    return null;
-  }
 
   const { setCurrentTime } = audioController;
   const { activeMusic, currentTime, progress } = audioState;

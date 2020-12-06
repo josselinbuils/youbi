@@ -1,10 +1,10 @@
 import cn from 'classnames';
 import React, { FC, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useHeightTransition } from '../../../../hooks/useHeightTransition';
-import { cancelable } from '../../../../utils/cancelable';
-import { useAudio } from '../../../AudioProvider/useAudio';
-import { Button } from '../Button/Button';
+import { useHeightTransition } from '../../../../../../hooks/useHeightTransition';
+import { cancelable } from '../../../../../../utils/cancelable';
+import { useAudio } from '../../../../../AudioProvider/useAudio';
+import { Button } from '../../../Button/Button';
 import styles from './OutputSelector.module.scss';
 
 export const OutputSelector: FC = () => {
@@ -21,7 +21,6 @@ export const OutputSelector: FC = () => {
       promise.then(setOutputs);
       return cancel;
     }
-    setOutputs([]);
   }, [audioController, opened]);
 
   useLayoutEffect(() => {
@@ -29,6 +28,7 @@ export const OutputSelector: FC = () => {
       setHeight(innerElementRef.current?.getBoundingClientRect().height || 0);
     } else if (transitionState === 'closed' && height > 0) {
       setHeight(0);
+      setOutputs([]);
     }
   }, [height, outputs, transitionState]);
 

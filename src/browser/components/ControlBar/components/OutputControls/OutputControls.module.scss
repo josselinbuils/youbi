@@ -1,0 +1,13 @@
+.outputControls {
+  padding: 20px 5px;
+
+  > * {
+    vertical-align: top;
+  }
+}
+
+.volumeBar {
+  width: 90px;
+  display: inline-block;
+  margin: 17px 0 17px auto;
+}

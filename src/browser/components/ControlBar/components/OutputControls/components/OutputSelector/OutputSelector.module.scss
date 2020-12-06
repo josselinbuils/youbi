@@ -1,4 +1,4 @@
-@import '../../../../App.constants';
+@import '../../../../../../App.constants';
 
 .backdrop {
   position: fixed;
@@ -13,6 +13,7 @@
 }
 
 .output {
+  display: block;
   appearance: none;
   color: inherit;
   background-color: inherit;
@@ -37,7 +38,6 @@
   position: absolute;
   right: 0;
   bottom: 90px;
-  width: 210px;
   background: lighten($backgroundColor, 5%);
   border: 1px solid darken($backgroundColor, 5%);
   border-right: none;
@@ -48,7 +48,6 @@
 }
 
 .outputSelectorButton {
-  margin-top: 5px;
-  height: 52px;
+  height: 50px;
   font-size: 20px;
 }

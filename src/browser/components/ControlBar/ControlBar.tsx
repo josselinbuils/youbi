@@ -1,8 +1,8 @@
 import cn from 'classnames';
 import React, { FC, useState } from 'react';
-import { Controls } from './components/Controls/Controls';
+import { MusicControls } from './components/MusicControls/MusicControls';
 import { MusicInfo } from './components/MusicInfo/MusicInfo';
-import { OutputSelector } from './components/OutputSelector/OutputSelector';
+import { OutputControls } from './components/OutputControls/OutputControls';
 import styles from './ControlBar.module.scss';
 
 export const ControlBar: FC<Props> = ({ className }) => {
@@ -18,10 +18,10 @@ export const ControlBar: FC<Props> = ({ className }) => {
         <MusicInfo />
       </div>
       <div className={styles.center}>
-        <Controls />
+        <MusicControls />
       </div>
       <div className={styles.right}>
-        <OutputSelector />
+        <OutputControls />
       </div>
     </div>
   );

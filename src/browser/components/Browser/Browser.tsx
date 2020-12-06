@@ -96,7 +96,7 @@ export const Browser: FC<Props> = ({ className }) => {
       <Letter letter={letter} />
       {tileLines.map((lineAlbums) => (
         <Fragment key={lineAlbums[0].name}>
-          <div>
+          <div className={styles.line}>
             {lineAlbums.map((album) => (
               <AlbumTile
                 album={album}

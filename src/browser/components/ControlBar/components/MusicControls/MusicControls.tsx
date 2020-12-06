@@ -3,9 +3,9 @@ import React, { FC } from 'react';
 import { useAudio } from '../../../AudioProvider/useAudio';
 import { SeekBar } from './SeekBar/SeekBar';
 import { Button } from '../Button/Button';
-import styles from './Controls.module.scss';
+import styles from './MusicControls.module.scss';
 
-export const Controls: FC = () => {
+export const MusicControls: FC = () => {
   const { audioController, audioState } = useAudio();
 
   const { next, play, prev, toggleRandom, toggleRepeat } = audioController;

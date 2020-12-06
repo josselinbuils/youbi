@@ -17,6 +17,7 @@ export class AudioController {
     new DecodingWorker(),
     new DecodingWorker(),
   ];
+  private readonly gainNode = this.audioContext.createGain();
   private readonly interval: number;
   private output?: MediaDeviceInfo;
   private get paused(): boolean {
@@ -30,11 +31,7 @@ export class AudioController {
   constructor() {
     this.interval = window.setInterval(this.timeUpdateListener, 500);
     this.audioStateSubject = new Subject(this.getState());
-    this.getOutputs().then((outputs) => {
-      this.output = outputs.find(
-        ({ deviceId }) => deviceId === 'default'
-      ) as MediaDeviceInfo;
-    });
+    this.getOutputs().then((outputs) => this.setOutput(outputs[0]));
   }
 
   clear = (): void => {
@@ -45,10 +42,13 @@ export class AudioController {
     }
   };
 
-  getOutputs = async (): Promise<MediaDeviceInfo[]> => {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.filter((device) => device.kind === 'audiooutput');
-  };
+  getOutputs = async (): Promise<MediaDeviceInfo[]> =>
+    (await navigator.mediaDevices.enumerateDevices())
+      .filter(({ kind }) => kind === 'audiooutput')
+      .filter(
+        ({ groupId }, index, list) =>
+          list.findIndex((device) => device.groupId === groupId) === index
+      );
 
   getState = (): AudioState => {
     return {
@@ -63,6 +63,7 @@ export class AudioController {
         ) / 100,
       random: this.random,
       repeat: this.repeat,
+      volume: this.gainNode.gain.value,
     };
   };
 
@@ -147,7 +148,7 @@ export class AudioController {
   /**
    * @param value 0 -> 1
    */
-  setCurrentTime = (value: number): void => {
+  setCurrentTime = async (value: number): Promise<void> => {
     if (this.activeMusic === undefined || this.audioBuffer === undefined) {
       return;
     }
@@ -157,7 +158,7 @@ export class AudioController {
     this.currentTime = Math.floor(
       Math.max(Math.min(Math.round(value * duration), duration - 1), 0)
     );
-    this.initSource();
+    await this.initSource();
   };
 
   setOutput = async (output: MediaDeviceInfo): Promise<void> => {
@@ -167,6 +168,11 @@ export class AudioController {
       this.pause();
       await this.initSource();
     }
+    this.publishState();
+  };
+
+  setVolume = (volume: number): void => {
+    this.gainNode.gain.value = Math.min(Math.max(volume, 0), 1);
     this.publishState();
   };
 
@@ -266,7 +272,7 @@ export class AudioController {
     source.start(0, this.currentTime);
 
     const streamNode = this.audioContext.createMediaStreamDestination();
-    source.connect(streamNode);
+    source.connect(this.gainNode).connect(streamNode);
 
     const audioElement = new Audio();
     await (audioElement as any).setSinkId(this.output.deviceId);
@@ -331,4 +337,5 @@ export interface AudioState {
   progress: number;
   random: boolean;
   repeat: boolean;
+  volume: number;
 }

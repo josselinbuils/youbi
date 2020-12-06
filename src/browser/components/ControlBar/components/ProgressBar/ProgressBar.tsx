@@ -1,11 +1,11 @@
+import cn from 'classnames';
 import React, { forwardRef } from 'react';
 import styles from './ProgressBar.module.scss';
 
-
 export const ProgressBar = forwardRef<HTMLDivElement, Props>(
-  ({ onSeekStart, progress }, ref) => (
+  ({ className, onSeekStart, progress }, ref) => (
     <div
-      className={styles.progressBar}
+      className={cn(styles.progressBar, className)}
       onMouseDown={onSeekStart}
       ref={ref}
       role="progressbar"
@@ -19,6 +19,7 @@ export const ProgressBar = forwardRef<HTMLDivElement, Props>(
 );
 
 interface Props {
+  className?: string;
   progress: number;
   onSeekStart(downEvent: React.MouseEvent): void;
 }
