@@ -34,10 +34,10 @@ export const AlbumDetails: FC<Props> = ({ album }) => {
   }, [album]);
 
   useLayoutEffect(() => {
-    if (album === undefined || transitionState !== 'createDom') {
+    if (activeAlbum === undefined) {
       return;
     }
-    const { musics } = album;
+    const { musics } = activeAlbum;
     const newDisks = [] as Column[][];
 
     if (musics.length > 0 && validateDiskInfo(musics)) {
@@ -51,20 +51,19 @@ export const AlbumDetails: FC<Props> = ({ album }) => {
       newDisks.push(computeColumns(detailsElementRef, musics));
     }
     setDisks(newDisks);
-  }, [album, transitionState]);
+  }, [activeAlbum]);
 
   useLayoutEffect(() => {
-    setHeight(
-      (detailsElementRef.current?.getBoundingClientRect()?.height || 0) +
-        (innerElementRef.current?.clientHeight || 0)
-    );
+    setHeight((innerElementRef.current?.clientHeight || 0) + 20);
   }, [disks]);
 
   useLayoutEffect(() => {
-    if (transitionState === 'closed' && height > 0) {
+    if (transitionState === 'closed') {
+      setActiveAlbum(undefined);
       setHeight(0);
+      setDisks([]);
     }
-  }, [height, transitionState]);
+  }, [transitionState]);
 
   return transitionState !== 'closed' ? (
     <div className={cn(styles.details)} ref={detailsElementRef} style={style}>
