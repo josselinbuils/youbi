@@ -9,7 +9,6 @@ import React, {
   useState,
 } from 'react';
 import { cancelable } from '../../utils/cancelable';
-import styles from './Browser.module.scss';
 import { AlbumTile } from './components/AlbumTile/AlbumTile';
 import { Letter } from './components/Letter/Letter';
 import { Album } from './interfaces/Album';
@@ -17,6 +16,7 @@ import { computeTileSize } from './utils/computeTileSize';
 import { getAlbums } from './utils/getAlbums';
 import { AlbumDetails } from './components/AlbumDetails/AlbumDetails';
 import { getColorPalette } from './utils/getColorPalette';
+import styles from './Browser.module.scss';
 
 const LETTER_HIDE_DELAY_MS = 500;
 const MAX_TILES_BY_ROW = 30;

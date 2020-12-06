@@ -4,11 +4,11 @@ import { Music } from '../../../../../shared/Music';
 import { useHeightTransition } from '../../../../hooks/useHeightTransition';
 import { useAudio } from '../../../AudioProvider/useAudio';
 import { Album } from '../../interfaces/Album';
-import styles from './AlbumDetails.module.scss';
 import { AlbumMusic } from './components/AlbumMusic/AlbumMusic';
 import { Column } from './interfaces/Column';
 import { computeColumns } from './utils/computeColumns';
 import { validateDiskInfo } from './utils/validateDiskInfo';
+import styles from './AlbumDetails.module.scss';
 
 export const AlbumDetails: FC<Props> = ({ album }) => {
   const [activeAlbum, setActiveAlbum] = useState<Album>();

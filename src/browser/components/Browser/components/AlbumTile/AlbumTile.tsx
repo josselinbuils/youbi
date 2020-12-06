@@ -1,8 +1,8 @@
 import cn from 'classnames';
 import React, { FC, HTMLAttributes, useEffect, useRef } from 'react';
+import { useIntersect } from '../../hooks/useIntersectionObserver';
 import { Album } from '../../interfaces/Album';
 import styles from './AlbumTile.module.scss';
-import { useIntersect } from '../../hooks/useIntersectionObserver';
 
 export const AlbumTile: FC<Props> = ({
   album,

@@ -1,7 +1,7 @@
 import cn from 'classnames';
 import React, { FC } from 'react';
-import styles from './MusicInfo.module.scss';
 import { useAudio } from '../../../AudioProvider/useAudio';
+import styles from './MusicInfo.module.scss';
 
 export const MusicInfo: FC = () => {
   const { audioState } = useAudio();

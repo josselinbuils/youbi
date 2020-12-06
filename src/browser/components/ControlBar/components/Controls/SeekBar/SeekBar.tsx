@@ -1,9 +1,8 @@
 import React, { createRef, FC } from 'react';
-import { ProgressBar } from './ProgressBar';
-import { useDragAndDrop } from './useDragAndDrop';
-
-import styles from './SeekBar.module.scss';
 import { useAudio } from '../../../../AudioProvider/useAudio';
+import { ProgressBar } from '../../ProgressBar/ProgressBar';
+import { useDragAndDrop } from './useDragAndDrop';
+import styles from './SeekBar.module.scss';
 
 export const SeekBar: FC = () => {
   const { audioController, audioState } = useAudio();

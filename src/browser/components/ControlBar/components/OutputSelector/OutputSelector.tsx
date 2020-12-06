@@ -1,11 +1,11 @@
 import cn from 'classnames';
 import React, { FC, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useHeightTransition } from '../../../../hooks/useHeightTransition';
+import { cancelable } from '../../../../utils/cancelable';
 import { useAudio } from '../../../AudioProvider/useAudio';
 import { Button } from '../Button/Button';
 import styles from './OutputSelector.module.scss';
-import { useHeightTransition } from '../../../../hooks/useHeightTransition';
-import { cancelable } from '../../../../utils/cancelable';
 
 export const OutputSelector: FC = () => {
   const [height, setHeight] = useState(0);
