@@ -53,7 +53,7 @@ export const OutputSelector: FC = () => {
                   <button
                     className={cn(styles.output, {
                       [styles.active]:
-                        deviceInfo.deviceId === audioState.output?.deviceId,
+                        deviceInfo.deviceId === audioState.outputDeviceId,
                     })}
                     key={deviceInfo.deviceId}
                     onClick={async () => {

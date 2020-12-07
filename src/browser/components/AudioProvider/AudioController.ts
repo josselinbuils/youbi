@@ -10,6 +10,7 @@ export class AudioController {
   private activeMusic?: Music;
   private audioBuffer?: AudioBuffer;
   private readonly audioContext = new AudioContext();
+  private readonly audioElement = new Audio();
   private audioSource?: AudioBufferSourceNode;
   private currentTime = 0;
   private currentWorkerIndex = 0;
@@ -19,7 +20,6 @@ export class AudioController {
   ];
   private readonly gainNode = this.audioContext.createGain();
   private readonly interval: number;
-  private output?: MediaDeviceInfo;
   private get paused(): boolean {
     return this.audioSource === undefined;
   }
@@ -53,7 +53,7 @@ export class AudioController {
   getState = (): AudioState => {
     return {
       activeMusic: this.activeMusic,
-      output: this.output,
+      outputDeviceId: (this.audioElement as any).sinkId,
       currentTime: dayjs(this.currentTime * 1000).format('mm:ss'),
       paused: this.paused,
       playlist: this.playlist,
@@ -162,12 +162,7 @@ export class AudioController {
   };
 
   setOutput = async (output: MediaDeviceInfo): Promise<void> => {
-    this.output = output;
-
-    if (this.activeMusic !== undefined && !this.paused) {
-      this.pause();
-      await this.initSource();
-    }
+    await (this.audioElement as any).setSinkId(output.deviceId);
     this.publishState();
   };
 
@@ -261,9 +256,6 @@ export class AudioController {
     if (this.audioBuffer === undefined) {
       throw new Error('No audio buffer');
     }
-    if (this.output === undefined) {
-      throw new Error('No output');
-    }
     this.audioSource?.removeEventListener('ended', this.musicEndListener);
 
     const source = this.audioContext.createBufferSource();
@@ -274,10 +266,8 @@ export class AudioController {
     const streamNode = this.audioContext.createMediaStreamDestination();
     source.connect(this.gainNode).connect(streamNode);
 
-    const audioElement = new Audio();
-    await (audioElement as any).setSinkId(this.output.deviceId);
-    audioElement.srcObject = streamNode.stream;
-    await audioElement.play();
+    this.audioElement.srcObject = streamNode.stream;
+    await this.audioElement.play();
 
     this.audioSource = source;
     this.startTime = performance.now() - this.currentTime * 1000;
@@ -331,7 +321,7 @@ export class AudioController {
 export interface AudioState {
   activeMusic?: Music;
   currentTime: string;
-  output: MediaDeviceInfo | undefined;
+  outputDeviceId: string;
   paused: boolean;
   playlist: Music[];
   progress: number;
