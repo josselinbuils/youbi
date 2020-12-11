@@ -1,18 +1,24 @@
 import cn from 'classnames';
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import { useAudio } from '../../../AudioProvider/useAudio';
 import { SeekBar } from './SeekBar/SeekBar';
 import { Button } from '../Button/Button';
 import styles from './MusicControls.module.scss';
+import { SharedProperties } from '../../../../../shared/SharedProperties';
 
-export const MusicControls: FC = () => {
+export const MusicControls: FC<Props> = ({ className }) => {
   const { audioController, audioState } = useAudio();
-
   const { next, play, prev, toggleRandom, toggleRepeat } = audioController;
   const { paused, random, repeat } = audioState;
 
+  useEffect(() => {
+    (window.remote as SharedProperties).onGlobalShortcut(
+      console.log.bind(console)
+    );
+  }, []);
+
   return (
-    <div className={styles.controls}>
+    <div className={cn(styles.controls, className)}>
       <div>
         <Button
           aria-label="toggle random"
@@ -55,3 +61,7 @@ export const MusicControls: FC = () => {
     </div>
   );
 };
+
+interface Props {
+  className: string;
+}

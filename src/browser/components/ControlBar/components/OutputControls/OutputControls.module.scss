@@ -1,8 +1,10 @@
 .outputControls {
   padding: 20px 5px;
+  display: flex;
 
   > * {
     vertical-align: top;
+    flex: 0 0 auto;
   }
 }
 

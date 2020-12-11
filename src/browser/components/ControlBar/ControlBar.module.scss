@@ -1,8 +1,14 @@
 @import '../../App.constants';
 
 .center {
-  flex-grow: 1;
   flex-shrink: 0;
+}
+
+.center,
+.left,
+.right {
+  box-sizing: border-box;
+  flex-grow: 1;
 }
 
 .controlBar {
@@ -19,8 +25,8 @@
 .left,
 .right {
   flex-shrink: 1;
-  flex-grow: 1;
   flex-basis: 250px;
+  overflow: hidden;
 }
 
 .right {

@@ -2,11 +2,6 @@ import cn from 'classnames';
 import React, { FC, HTMLAttributes } from 'react';
 import styles from './Button.module.scss';
 
-interface Props extends HTMLAttributes<HTMLButtonElement> {
-  'aria-label': string;
-  checked?: boolean;
-}
-
 export const Button: FC<Props> = ({
   checked = false,
   className,
@@ -21,3 +16,8 @@ export const Button: FC<Props> = ({
     {children}
   </button>
 );
+
+interface Props extends HTMLAttributes<HTMLButtonElement> {
+  'aria-label': string;
+  checked?: boolean;
+}

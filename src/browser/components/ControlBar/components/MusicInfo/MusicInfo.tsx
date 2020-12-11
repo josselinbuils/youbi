@@ -3,12 +3,12 @@ import React, { FC } from 'react';
 import { useAudio } from '../../../AudioProvider/useAudio';
 import styles from './MusicInfo.module.scss';
 
-export const MusicInfo: FC = () => {
+export const MusicInfo: FC<Props> = ({ className }) => {
   const { audioState } = useAudio();
   const { activeMusic } = audioState;
 
   return (
-    <div className={styles.musicInfo}>
+    <div className={cn(styles.musicInfo, className)}>
       <div
         className={cn(
           styles.preview,
@@ -29,3 +29,7 @@ export const MusicInfo: FC = () => {
     </div>
   );
 };
+
+interface Props {
+  className: string;
+}

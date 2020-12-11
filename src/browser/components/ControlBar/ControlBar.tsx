@@ -14,15 +14,9 @@ export const ControlBar: FC<Props> = ({ className }) => {
         [styles.seeking]: isSeeking,
       })}
     >
-      <div className={styles.left}>
-        <MusicInfo />
-      </div>
-      <div className={styles.center}>
-        <MusicControls />
-      </div>
-      <div className={styles.right}>
-        <OutputControls />
-      </div>
+      <MusicInfo className={styles.left} />
+      <MusicControls className={styles.center} />
+      <OutputControls className={styles.right} />
     </div>
   );
 };
