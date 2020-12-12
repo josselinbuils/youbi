@@ -1,21 +1,14 @@
 import cn from 'classnames';
-import React, { FC, useEffect } from 'react';
+import React, { FC } from 'react';
 import { useAudio } from '../../../AudioProvider/useAudio';
 import { SeekBar } from './SeekBar/SeekBar';
 import { Button } from '../Button/Button';
 import styles from './MusicControls.module.scss';
-import { SharedProperties } from '../../../../../shared/SharedProperties';
 
 export const MusicControls: FC<Props> = ({ className }) => {
   const { audioController, audioState } = useAudio();
   const { next, play, prev, toggleRandom, toggleRepeat } = audioController;
   const { paused, random, repeat } = audioState;
-
-  useEffect(() => {
-    (window.remote as SharedProperties).onGlobalShortcut(
-      console.log.bind(console)
-    );
-  }, []);
 
   return (
     <div className={cn(styles.controls, className)}>
