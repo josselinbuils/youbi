@@ -2,12 +2,11 @@
 import 'source-map-support/register';
 import { app, BrowserWindow, protocol } from 'electron';
 import electronWindowState from 'electron-window-state';
-import ipc from 'ipc-promise';
 import { join } from 'path';
 import { format } from 'url';
-import { Command } from '../shared/Command';
 import { Browser } from './Browser';
 import { Logger } from './Logger';
+import { actions, GET_MUSIC_LIST, MUSIC_LIST } from '../shared/actions';
 
 const logger = Logger.create('Main');
 
@@ -28,47 +27,20 @@ export class Main {
       this.createMainWindow();
 
       const browser = Browser.create(app.getPath('userData'));
-      const executors = { browser };
 
-      Object.entries(executors).forEach(([name, executor]) => {
-        ipc.on(name, async (command: Command) => {
-          const logHeader = `${name}->${command.name}`;
+      actions.on(async (action) => {
+        logger.debug(`Action received: ${action.type}`);
 
-          logger.debug(`Executes: ${logHeader}()`);
-
-          if (
-            typeof executor[command.name as keyof typeof executor] !==
-            'function'
-          ) {
-            const message = 'Unknown executor method';
-            logger.error(`${logHeader}: ${message}`);
-            throw { message };
+        switch (action.type) {
+          case GET_MUSIC_LIST: {
+            const musics = await browser.getMusicList(action.path);
+            actions.send({ type: MUSIC_LIST, musics });
+            break;
           }
 
-          try {
-            let res = (executor[
-              command.name as keyof typeof executor
-            ] as any).apply(executor, command.args);
-
-            if (res instanceof Promise) {
-              res = await res;
-            }
-
-            let preview = res;
-
-            if (typeof res === 'string') {
-              preview = res.length < 50 ? res : `${res.slice(0, 50)}[...]`;
-            } else if (typeof res === 'object') {
-              preview = '[object]';
-            }
-
-            logger.debug(`Responds: ${logHeader}: ${preview}`);
-            return res;
-          } catch (error) {
-            logger.error(`${logHeader}: ${error.stack}`);
-            throw { message: error.message };
-          }
-        });
+          default:
+            throw new Error(`Unknown action: ${action.type}`);
+        }
       });
     });
 

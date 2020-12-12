@@ -11,7 +11,7 @@ class FetchSource extends AV.EventEmitter {
     super();
 
     this.active = false;
-    this.events = [];
+    this.actionManager = [];
     this.url = url;
   }
 

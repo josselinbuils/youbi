@@ -22,7 +22,6 @@
     "electron-window-state": "^5.0.3",
     "dayjs": "^1.9.6",
     "fs-extra": "^9.0.1",
-    "ipc-promise": "^0.1.4",
     "jimp": "^0.16.1",
     "music-metadata": "^7.5.0",
     "remove": "^0.1.5",

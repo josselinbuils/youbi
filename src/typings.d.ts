@@ -1,5 +1,4 @@
 declare module 'color-thief-browser';
-declare module 'ipc-promise';
 
 declare module '*.module.scss' {
   const styles: Record<string, string>;

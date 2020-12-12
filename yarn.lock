@@ -3785,11 +3785,6 @@ ipaddr.js@1.9.1, ipaddr.js@^1.9.0:
   resolved "https://registry.yarnpkg.com/ipaddr.js/-/ipaddr.js-1.9.1.tgz#bff38543eeb8984825079ff3a2a8e6cbd46781b3"
   integrity sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==
 
-ipc-promise@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/ipc-promise/-/ipc-promise-0.1.4.tgz#5274236976942c22b7945858ae7c0b7fcf3fc559"
-  integrity sha1-UnQjaXaULCK3lFhYrnwLf88/xVk=
-
 is-absolute-url@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/is-absolute-url/-/is-absolute-url-3.0.3.tgz#96c6a22b6a23929b11ea0afb1836c36ad4a5d698"
