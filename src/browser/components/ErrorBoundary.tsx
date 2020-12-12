@@ -6,10 +6,10 @@ import { SharedProperties } from '../../shared/SharedProperties';
 export class ErrorBoundary extends Component {
   private clear?: () => void;
 
-  componentDidCatch({ stack }: Error, { componentStack }: ErrorInfo) {
+  componentDidCatch(error: Error, { componentStack }: ErrorInfo) {
     toast.error(
       <>
-        {stack}
+        {formatError(error)}
         <br />${componentStack}
       </>
     );
@@ -17,24 +17,23 @@ export class ErrorBoundary extends Component {
 
   componentDidMount() {
     const { actions } = window.remote as SharedProperties;
-    const { onError } = this;
 
     const errorListenerCallback = (event: ErrorEvent) => {
-      const { colno, filename, lineno, message } = event;
+      const { colno, error, filename, lineno } = event;
       const filePath = filename.match(/src.+\.[a-z]+/)?.[0] ?? filename;
 
-      onError(
+      toast.error(
         <>
-          {message}
+          {formatError(error)}
           <br />
           &nbsp;&nbsp;at {filePath} {lineno}:{colno}
         </>
       );
     };
-    const errorActionCallback = ({ error }: ErrorAction) => onError(error);
-    const unhandledRejectionCallback = (event: PromiseRejectionEvent) => {
-      onError(event.reason);
-    };
+    const errorActionCallback = ({ error }: ErrorAction) =>
+      toast.error(formatError(error));
+    const unhandledRejectionCallback = (event: PromiseRejectionEvent) =>
+      toast.error(formatError(event.reason));
 
     window.addEventListener('error', errorListenerCallback);
     window.addEventListener('unhandledrejection', unhandledRejectionCallback);
@@ -63,8 +62,19 @@ export class ErrorBoundary extends Component {
       </>
     );
   }
+}
 
-  private onError = (error: Error | ReactNode) => {
-    toast.error((error as Error)?.stack ?? error);
-  };
+function formatError({ message, stack }: Error): ReactNode {
+  return (
+    <p
+      dangerouslySetInnerHTML={{
+        __html:
+          stack
+            ?.replace(/ /g, '&nbsp;')
+            .replace(/\n/g, '<br />')
+            .replace(/\(webpack:[^)]+\/([^/)]+)\)/g, '($1)')
+            .replace(/\?:/g, ':') || message,
+      }}
+    />
+  );
 }

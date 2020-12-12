@@ -11,5 +11,6 @@ module.exports = {
   ],
   rules: {
     'import/no-extraneous-dependencies': 'off',
+    'prefer-promise-reject-errors': 'off', // buggy
   },
 };

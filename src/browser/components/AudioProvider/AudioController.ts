@@ -260,7 +260,7 @@ export class AudioController {
 
           offset += channelBufferLength;
         } else {
-          reject(new Error(data));
+          reject(data as Error);
         }
       };
 
