@@ -1,4 +1,6 @@
 import color from 'ansicolor';
+import { ERROR_ACTION } from '../shared/actions';
+import { actions } from './actions';
 
 const S_TO_MS = 1e3;
 const NS_TO_MS = 1e-6;
@@ -63,6 +65,10 @@ export class Logger {
   }
 
   error(...args: any[]): void {
+    actions.send({
+      type: ERROR_ACTION,
+      error: args[0] as Error,
+    });
     this.write(LogLevel.Error, args);
   }
 

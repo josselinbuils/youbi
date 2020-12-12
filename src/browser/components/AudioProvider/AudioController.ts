@@ -114,13 +114,17 @@ export class AudioController {
   };
 
   playMusic = async (music: Music): Promise<void> => {
-    await this.loadMusic(music);
-
-    if (!this.paused) {
-      this.pause();
+    try {
+      if (!this.paused) {
+        this.pause();
+      }
+      await this.loadMusic(music);
+      await this.initSource();
+      this.publishState();
+    } catch (error) {
+      this.publishState();
+      throw error;
     }
-    await this.initSource();
-    this.publishState();
   };
 
   prev = async (): Promise<void> => {
@@ -187,7 +191,7 @@ export class AudioController {
   };
 
   private decode = async (music: Music): Promise<MediaStream> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const { currentWorkerIndex, decodingWorkerPool } = this;
       let duration: number;
       let format: any;
@@ -219,7 +223,8 @@ export class AudioController {
 
           if (this.audioBuffer === undefined) {
             if (duration === undefined) {
-              throw new Error('Unable to retrieve duration');
+              reject(new Error('Unable to retrieve duration'));
+              return;
             }
 
             this.audioBuffer = new AudioBuffer({
@@ -244,7 +249,7 @@ export class AudioController {
 
           offset += channelBufferLength;
         } else {
-          throw new Error(`Unexpected data: ${data}`);
+          reject(new Error(data));
         }
       };
 
@@ -277,10 +282,10 @@ export class AudioController {
     if (!this.playlist.includes(music)) {
       throw new Error('playlist does not contain the given music');
     }
-    await this.decode(music);
     this.activeMusic = music;
     this.currentTime = 0;
     this.publishState();
+    await this.decode(music);
   };
 
   private musicEndListener = async () => {

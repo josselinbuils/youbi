@@ -11,7 +11,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.module\.scss$/,
+        test: /\.module\.s?css$/,
         use: [
           MiniCssExtractPlugin.loader,
           {
@@ -26,8 +26,8 @@ module.exports = {
         ],
       },
       {
-        test: /\.scss$/,
-        exclude: /\.module\.scss$/,
+        test: /\.s?css$/,
+        exclude: /\.module\.s?css$/,
         use: [
           MiniCssExtractPlugin.loader,
           {
@@ -70,7 +70,7 @@ module.exports = {
     publicPath: '',
   },
   plugins: [
-    isDevelopment && new ReactRefreshPlugin(),
+    isDevelopment && new ReactRefreshPlugin({ overlay: false }),
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
       template: path.join(process.cwd(), 'src/browser/index.html'),

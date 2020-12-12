@@ -1,12 +1,12 @@
-/* eslint-disable no-throw-literal */
 import 'source-map-support/register';
 import { app, BrowserWindow, protocol } from 'electron';
 import electronWindowState from 'electron-window-state';
 import { join } from 'path';
 import { format } from 'url';
+import { GET_MUSIC_LIST_ACTION, MUSIC_LIST_ACTION } from '../shared/actions';
+import { actions } from './actions';
 import { Browser } from './Browser';
 import { Logger } from './Logger';
-import { actions, GET_MUSIC_LIST, MUSIC_LIST } from '../shared/actions';
 
 const logger = Logger.create('Main');
 
@@ -28,18 +28,22 @@ export class Main {
 
       const browser = Browser.create(app.getPath('userData'));
 
-      actions.on(async (action) => {
+      actions.on('all', async (action) => {
         logger.debug(`Action received: ${action.type}`);
 
-        switch (action.type) {
-          case GET_MUSIC_LIST: {
-            const musics = await browser.getMusicList(action.path);
-            actions.send({ type: MUSIC_LIST, musics });
-            break;
-          }
+        try {
+          switch (action.type) {
+            case GET_MUSIC_LIST_ACTION: {
+              const musics = await browser.getMusicList(action.path);
+              actions.send({ type: MUSIC_LIST_ACTION, musics });
+              break;
+            }
 
-          default:
-            throw new Error(`Unknown action: ${action.type}`);
+            default:
+              throw new Error(`Unknown action: ${action.type}`);
+          }
+        } catch (error) {
+          logger.error(error);
         }
       });
     });

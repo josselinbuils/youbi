@@ -1,10 +1,20 @@
+import {
+  GET_MUSIC_LIST_ACTION,
+  MUSIC_LIST_ACTION,
+  MusicListAction,
+} from '../../../../shared/actions';
 import { SharedProperties } from '../../../../shared/SharedProperties';
 import { Album } from '../interfaces/Album';
 import { groupBy } from './groupBy';
 
 export async function getAlbums(): Promise<Album[]> {
-  const rawMusics = await (window.remote as SharedProperties).getMusicList(
-    '/Volumes/music'
+  const { actions } = window.remote as SharedProperties;
+  actions.send({
+    type: GET_MUSIC_LIST_ACTION,
+    path: '/Volumes/music',
+  });
+  const { musics: rawMusics } = await actions.waitFor<MusicListAction>(
+    MUSIC_LIST_ACTION
   );
   const musicsByAlbum = groupBy(rawMusics, 'album');
 
