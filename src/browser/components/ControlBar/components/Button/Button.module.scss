@@ -16,12 +16,18 @@
     margin-left: 0 !important;
   }
 
-  &:active,
-  &.checked {
-    color: $primaryColor;
+  &:disabled {
+    opacity: 0.5;
   }
 
-  &:hover:not(:active, .checked) {
-    color: lighten($textColor, 15%);
+  &:not(:disabled) {
+    &:active,
+    &.checked {
+      color: $primaryColor;
+    }
+
+    &:hover:not(:active, .checked) {
+      color: lighten($textColor, 15%);
+    }
   }
 }

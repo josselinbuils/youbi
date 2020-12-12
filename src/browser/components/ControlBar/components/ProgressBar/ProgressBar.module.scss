@@ -21,21 +21,24 @@
   margin: 0;
   padding: 6px 5px;
   outline: none;
-}
 
-.progressBar:hover .bar,
-.seeking .bar {
-  background: $primaryColor;
-}
+  &:not(.disabled) {
+    &:hover,
+    &.seeking {
+      .bar {
+        background: $primaryColor;
 
-.progressBar:hover .bar:after,
-.seeking .bar:after {
-  position: absolute;
-  top: -3px;
-  right: -5px;
-  width: 10px;
-  height: 10px;
-  content: '';
-  border-radius: 5px;
-  background: $primaryColor;
+        &:after {
+          position: absolute;
+          top: -3px;
+          right: -5px;
+          width: 10px;
+          height: 10px;
+          content: '';
+          border-radius: 5px;
+          background: $primaryColor;
+        }
+      }
+    }
+  }
 }

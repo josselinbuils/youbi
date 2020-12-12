@@ -8,7 +8,8 @@ import styles from './MusicControls.module.scss';
 export const MusicControls: FC<Props> = ({ className }) => {
   const { audioController, audioState } = useAudio();
   const { next, play, prev, toggleRandom, toggleRepeat } = audioController;
-  const { paused, random, repeat } = audioState;
+  const { activeMusic, paused, random, repeat } = audioState;
+  const isThereActiveMusic = activeMusic !== undefined;
 
   return (
     <div className={cn(styles.controls, className)}>
@@ -24,11 +25,17 @@ export const MusicControls: FC<Props> = ({ className }) => {
         <Button
           aria-label="previous"
           className={styles.prevButton}
+          disabled={!isThereActiveMusic}
           onClick={prev}
         >
           <i aria-hidden="true" className="fas fa-step-backward" />
         </Button>
-        <Button aria-label="play" className={styles.playButton} onClick={play}>
+        <Button
+          aria-label="play"
+          className={styles.playButton}
+          disabled={!isThereActiveMusic}
+          onClick={play}
+        >
           <i
             aria-hidden="true"
             className={cn('fa', paused ? 'fa-play-circle' : 'fa-pause-circle')}
@@ -37,6 +44,7 @@ export const MusicControls: FC<Props> = ({ className }) => {
         <Button
           aria-label="next"
           className={styles.nextButton}
+          disabled={!isThereActiveMusic}
           onClick={() => next()}
         >
           <i aria-hidden="true" className="fas fa-step-forward" />

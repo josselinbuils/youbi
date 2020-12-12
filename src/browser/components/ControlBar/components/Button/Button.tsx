@@ -1,5 +1,5 @@
 import cn from 'classnames';
-import React, { FC, HTMLAttributes } from 'react';
+import React, { ButtonHTMLAttributes, FC } from 'react';
 import styles from './Button.module.scss';
 
 export const Button: FC<Props> = ({
@@ -17,7 +17,7 @@ export const Button: FC<Props> = ({
   </button>
 );
 
-interface Props extends HTMLAttributes<HTMLButtonElement> {
+interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   'aria-label': string;
   checked?: boolean;
 }

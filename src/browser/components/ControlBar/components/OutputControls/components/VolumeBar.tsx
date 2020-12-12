@@ -1,15 +1,15 @@
-import React, { createRef, FC } from 'react';
+import React, { FC, useRef, useState } from 'react';
 import { useAudio } from '../../../../AudioProvider/useAudio';
 import { useDragAndDrop } from '../../../hooks/useDragAndDrop';
 import { ProgressBar } from '../../ProgressBar/ProgressBar';
 
 export const VolumeBar: FC<Props> = ({ className }) => {
-  const progressBarRef = createRef<HTMLDivElement>();
-  const seekStartHandler = useDragAndDrop(onSeekStart);
-  const {
-    audioController: { setVolume },
-    audioState: { volume },
-  } = useAudio();
+  const [seeking, setSeeking] = useState(false);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const seekStartHandler = useDragAndDrop(onSeekStart, () => setSeeking(false));
+  const { audioController, audioState } = useAudio();
+  const { setVolume } = audioController;
+  const { volume } = audioState;
 
   function onSeekStart(
     downEvent: React.MouseEvent
@@ -22,6 +22,7 @@ export const VolumeBar: FC<Props> = ({ className }) => {
     const dx = downEvent.nativeEvent.offsetX - downEvent.clientX;
 
     setVolume((downEvent.nativeEvent.offsetX / progressBarWidth) ** 2);
+    setSeeking(true);
 
     return (moveEvent) => {
       setVolume(
@@ -38,6 +39,7 @@ export const VolumeBar: FC<Props> = ({ className }) => {
       progress={Math.sqrt(volume) * 100}
       onSeekStart={seekStartHandler}
       ref={progressBarRef}
+      seeking={seeking}
     />
   );
 };

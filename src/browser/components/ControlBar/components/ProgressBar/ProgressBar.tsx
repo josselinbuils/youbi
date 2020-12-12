@@ -3,9 +3,12 @@ import React, { forwardRef } from 'react';
 import styles from './ProgressBar.module.scss';
 
 export const ProgressBar = forwardRef<HTMLDivElement, Props>(
-  ({ className, onSeekStart, progress }, ref) => (
+  ({ className, disabled = false, onSeekStart, progress, seeking }, ref) => (
     <div
-      className={cn(styles.progressBar, className)}
+      className={cn(styles.progressBar, className, {
+        [styles.disabled]: disabled,
+        [styles.seeking]: seeking,
+      })}
       onMouseDown={onSeekStart}
       ref={ref}
       role="progressbar"
@@ -20,6 +23,8 @@ export const ProgressBar = forwardRef<HTMLDivElement, Props>(
 
 interface Props {
   className?: string;
+  disabled?: boolean;
   progress: number;
+  seeking: boolean;
   onSeekStart(downEvent: React.MouseEvent): void;
 }

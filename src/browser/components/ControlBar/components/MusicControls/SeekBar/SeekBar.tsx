@@ -1,14 +1,14 @@
-import React, { createRef, FC } from 'react';
+import React, { FC, useRef, useState } from 'react';
 import { useAudio } from '../../../../AudioProvider/useAudio';
 import { useDragAndDrop } from '../../../hooks/useDragAndDrop';
 import { ProgressBar } from '../../ProgressBar/ProgressBar';
 import styles from './SeekBar.module.scss';
 
 export const SeekBar: FC = () => {
+  const [seeking, setSeeking] = useState(false);
   const { audioController, audioState } = useAudio();
-  const progressBarRef = createRef<HTMLDivElement>();
-  const seekStartHandler = useDragAndDrop(onSeekStart);
-
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const seekStartHandler = useDragAndDrop(onSeekStart, () => setSeeking(false));
   const { setCurrentTime } = audioController;
   const { activeMusic, currentTime, progress } = audioState;
 
@@ -23,6 +23,7 @@ export const SeekBar: FC = () => {
     const dx = downEvent.nativeEvent.offsetX - downEvent.clientX;
 
     setCurrentTime(downEvent.nativeEvent.offsetX / progressBarWidth);
+    setSeeking(true);
 
     return (moveEvent: MouseEvent) =>
       setCurrentTime(
@@ -37,9 +38,11 @@ export const SeekBar: FC = () => {
     <div className={styles.seekBar}>
       <time className={styles.currentTime}>{currentTime}</time>
       <ProgressBar
-        progress={progress}
+        disabled={activeMusic === undefined}
         onSeekStart={seekStartHandler}
+        progress={progress}
         ref={progressBarRef}
+        seeking={seeking}
       />
       <time className={styles.duration}>
         {activeMusic ? activeMusic.readableDuration : '00:00'}
