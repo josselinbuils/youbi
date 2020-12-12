@@ -16,5 +16,8 @@
 
 .line {
   display: flex;
-  justify-content: space-between;
+
+  &:not(:last-child) {
+    justify-content: space-between;
+  }
 }
