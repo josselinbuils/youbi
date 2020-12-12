@@ -16,7 +16,7 @@
     "start": "electron ."
   },
   "dependencies": {
-    "@josselinbuils/utils": "^0.3.0",
+    "@josselinbuils/utils": "^0.4.2",
     "ansicolor": "^1.1.93",
     "dayjs": "^1.9.6",
     "electron-store": "^6.0.1",

@@ -23,8 +23,13 @@ export const VolumeBar: FC<Props> = ({ className }) => {
 
     setVolume((downEvent.nativeEvent.offsetX / progressBarWidth) ** 2);
 
-    return (moveEvent) =>
-      setVolume(((moveEvent.clientX + dx) / progressBarWidth) ** 2);
+    return (moveEvent) => {
+      setVolume(
+        (Math.max(Math.min(moveEvent.clientX + dx, progressBarWidth), 0) /
+          progressBarWidth) **
+          2
+      );
+    };
   }
 
   return (

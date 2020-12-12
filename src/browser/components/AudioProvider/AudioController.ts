@@ -1,3 +1,4 @@
+import { ExecQueue } from '@josselinbuils/utils/ExecQueue';
 import { Subject } from '@josselinbuils/utils/Subject';
 import dayjs from 'dayjs';
 // eslint-disable-next-line import/no-unresolved,import/no-webpack-loader-syntax
@@ -10,7 +11,7 @@ export class AudioController {
   private activeMusic?: Music;
   private audioBuffer?: AudioBuffer;
   private readonly audioContext = new AudioContext();
-  private readonly audioElement = new Audio();
+  private audioElement!: HTMLAudioElement;
   private audioSource?: AudioBufferSourceNode;
   private currentTime = 0;
   private currentWorkerIndex = 0;
@@ -18,28 +19,27 @@ export class AudioController {
     new DecodingWorker(),
     new DecodingWorker(),
   ];
-  private readonly gainNode = this.audioContext.createGain();
-  private readonly interval: number;
   private get paused(): boolean {
-    return this.audioSource === undefined;
+    return this.audioElement.paused;
   }
   private playlist: Music[] = [];
+  private readonly execQueue = new ExecQueue();
   private random = false;
   private repeat = false;
   private startTime = 0;
 
   constructor() {
-    this.interval = window.setInterval(this.timeUpdateListener, 500);
+    this.setAudioElement();
     this.audioStateSubject = new Subject(this.getState());
     this.getOutputs().then((outputs) => this.setOutput(outputs[0]));
   }
 
   clear = (): void => {
-    window.clearInterval(this.interval);
-
     while (this.decodingWorkerPool.length > 0) {
       this.decodingWorkerPool.shift()?.terminate();
     }
+    this.stopSource();
+    this.clearAudioElement();
   };
 
   getOutputs = async (): Promise<MediaDeviceInfo[]> =>
@@ -63,7 +63,7 @@ export class AudioController {
         ) / 100,
       random: this.random,
       repeat: this.repeat,
-      volume: this.gainNode.gain.value,
+      volume: this.audioElement.volume,
     };
   };
 
@@ -94,9 +94,7 @@ export class AudioController {
   };
 
   pause = () => {
-    this.audioSource?.removeEventListener('ended', this.musicEndListener);
-    this.audioSource?.stop();
-    delete this.audioSource;
+    this.audioElement.pause();
     this.publishState();
   };
 
@@ -106,11 +104,11 @@ export class AudioController {
     }
 
     if (this.paused) {
-      await this.initSource();
+      await this.audioElement.play();
+      this.publishState();
     } else {
       this.pause();
     }
-    this.publishState();
   };
 
   playMusic = async (music: Music): Promise<void> => {
@@ -119,8 +117,7 @@ export class AudioController {
         this.pause();
       }
       await this.loadMusic(music);
-      await this.initSource();
-      this.publishState();
+      await this.play();
     } catch (error) {
       this.publishState();
       throw error;
@@ -152,18 +149,24 @@ export class AudioController {
   /**
    * @param value 0 -> 1
    */
-  setCurrentTime = async (value: number): Promise<void> => {
-    if (this.activeMusic === undefined || this.audioBuffer === undefined) {
-      return;
-    }
-    const { duration } = this.activeMusic;
+  setCurrentTime = this.execQueue.makeSync(
+    async (value: number): Promise<void> => {
+      if (this.activeMusic === undefined || this.audioBuffer === undefined) {
+        return;
+      }
+      const { duration } = this.activeMusic;
 
-    this.audioSource?.stop();
-    this.currentTime = Math.floor(
-      Math.max(Math.min(Math.round(value * duration), duration - 1), 0)
-    );
-    await this.initSource();
-  };
+      this.currentTime = value * duration;
+
+      if (this.audioSource !== undefined) {
+        this.stopSource();
+        await this.initSource();
+        await this.play();
+      } else {
+        this.audioElement.currentTime = this.currentTime;
+      }
+    }
+  );
 
   setOutput = async (output: MediaDeviceInfo): Promise<void> => {
     await (this.audioElement as any).setSinkId(output.deviceId);
@@ -171,7 +174,7 @@ export class AudioController {
   };
 
   setVolume = (volume: number): void => {
-    this.gainNode.gain.value = Math.min(Math.max(volume, 0), 1);
+    this.audioElement.volume = volume;
     this.publishState();
   };
 
@@ -189,6 +192,14 @@ export class AudioController {
     this.random = !this.random;
     this.publishState();
   };
+
+  private clearAudioElement(): void {
+    this.audioElement.removeEventListener('ended', this.musicEndListener);
+    this.audioElement.removeEventListener(
+      'timeupdate',
+      this.timeUpdateListener
+    );
+  }
 
   private decode = async (music: Music): Promise<MediaStream> => {
     return new Promise((resolve, reject) => {
@@ -261,31 +272,35 @@ export class AudioController {
     if (this.audioBuffer === undefined) {
       throw new Error('No audio buffer');
     }
-    this.audioSource?.removeEventListener('ended', this.musicEndListener);
-
     const source = this.audioContext.createBufferSource();
     source.buffer = this.audioBuffer;
     source.addEventListener('ended', this.musicEndListener);
     source.start(0, this.currentTime);
 
     const streamNode = this.audioContext.createMediaStreamDestination();
-    source.connect(this.gainNode).connect(streamNode);
+    source.connect(streamNode);
 
     this.audioElement.srcObject = streamNode.stream;
-    await this.audioElement.play();
-
     this.audioSource = source;
-    this.startTime = performance.now() - this.currentTime * 1000;
+    this.startTime = this.currentTime;
   };
 
   private loadMusic = async (music: Music): Promise<void> => {
     if (!this.playlist.includes(music)) {
       throw new Error('playlist does not contain the given music');
     }
+    this.stopSource();
     this.activeMusic = music;
     this.currentTime = 0;
+    this.startTime = 0;
     this.publishState();
-    await this.decode(music);
+
+    if (music.path.endsWith('m4a')) {
+      await this.decode(music);
+      await this.initSource();
+    } else {
+      this.setAudioElement(`music://${music.pathHash}`);
+    }
   };
 
   private musicEndListener = async () => {
@@ -300,7 +315,7 @@ export class AudioController {
     this.audioStateSubject.next(this.getState());
   };
 
-  private readonly rand = async (): Promise<void> => {
+  private rand = async (): Promise<void> => {
     const newIndex = Math.floor(this.playlist.length * Math.random());
 
     if (this.paused) {
@@ -310,13 +325,30 @@ export class AudioController {
     }
   };
 
-  private readonly timeUpdateListener = () => {
+  private setAudioElement(src?: string): void {
+    if (this.audioElement !== undefined) {
+      this.clearAudioElement();
+    }
+    this.audioElement = new Audio(src);
+    this.audioElement.addEventListener('ended', this.musicEndListener);
+    this.audioElement.addEventListener('timeupdate', this.timeUpdateListener);
+  }
+
+  private stopSource = (): void => {
+    if (this.audioSource !== undefined) {
+      this.audioSource.stop();
+      this.audioSource.removeEventListener('ended', this.musicEndListener);
+      this.audioSource = undefined;
+    }
+  };
+
+  private timeUpdateListener = () => {
     if (this.activeMusic === undefined || this.paused) {
       return;
     }
 
     this.currentTime = Math.min(
-      (performance.now() - this.startTime) / 1000,
+      this.audioElement.currentTime + this.startTime,
       this.activeMusic.duration
     );
     this.publishState();

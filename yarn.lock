@@ -548,10 +548,10 @@
   resolved "https://registry.yarnpkg.com/@josselinbuils/hooks/-/hooks-0.2.0.tgz#cff3750b61022b1ae6aa3d106fc1a030e90f1dd8"
   integrity sha512-xY3WEJl0e+eQQbCnwwmOrRmNCdjGLA2IRkkT6T0Xa6f1mrAnsF35IVCjGr8E70bat12oxmdHGWOafchB8DDXRA==
 
-"@josselinbuils/utils@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@josselinbuils/utils/-/utils-0.3.0.tgz#4c1c43f84ca57020d8c81219e96bb3d0aca622c3"
-  integrity sha512-3W+of4uPzi2IRLqQPaLtnu5eEJCoGddvh35Uayr9wTm7GgsgCGGSVCQad4rTLum65KX3FK4qwmCcsGlj5xbkzg==
+"@josselinbuils/utils@^0.4.2":
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/@josselinbuils/utils/-/utils-0.4.2.tgz#71718462041d947d23abf76b8463ac3e1c6e8fa6"
+  integrity sha512-1GOX+TMLboFkkmey14MR/1F0bBIHwmi1OMGtrTZzNOMS88/A+PTGYcfTRURNRdRb3OcXDfJCG+c93Xt73pmAZA==
 
 "@nodelib/fs.scandir@2.1.3":
   version "2.1.3"

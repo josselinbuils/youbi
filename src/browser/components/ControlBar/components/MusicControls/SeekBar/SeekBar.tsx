@@ -25,7 +25,12 @@ export const SeekBar: FC = () => {
     setCurrentTime(downEvent.nativeEvent.offsetX / progressBarWidth);
 
     return (moveEvent: MouseEvent) =>
-      setCurrentTime((moveEvent.clientX + dx) / progressBarWidth);
+      setCurrentTime(
+        Math.max(
+          Math.min(moveEvent.clientX + dx, progressBarWidth * 0.999),
+          0
+        ) / progressBarWidth
+      );
   }
 
   return (
