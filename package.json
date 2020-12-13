@@ -9,7 +9,7 @@
     "dev": "concurrently -n browser,node,electron 'yarn dev:browser' 'yarn dev:node' 'yarn dev:electron'",
     "dev:browser": "node ./scripts/dev.js",
     "dev:node": "yarn build:node -w",
-    "dev:electron": "chokidar 'dist/node/**/*' -c 'electron .'",
+    "dev:electron": "chokidar 'dist/node/**/*' -c 'pkill -f ./node_modules/.bin/electron; electron .'",
     "lint": "eslint .",
     "package:mac": "node ./scripts/package darwin",
     "package:win": "node ./scripts/package win32",
