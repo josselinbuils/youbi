@@ -39,8 +39,14 @@ class FetchSource extends AV.EventEmitter {
     }
 
     if (this.reader === undefined) {
-      const response = await fetch(this.url);
-      this.reader = response.body?.getReader();
+      try {
+        const response = await fetch(this.url);
+        this.reader = response.body?.getReader();
+      } catch (error) {
+        console.error(error);
+        this.emit('error', new Error(`Failed to fetch music`));
+        return;
+      }
     }
 
     if (this.reader === undefined) {
@@ -120,7 +126,9 @@ function stopDecoder() {
   }
 }
 
-onmessage = async (event) => {
+global.onerror = (error) => postMessage(error);
+
+global.onmessage = async (event) => {
   if (event.data === 'stop') {
     stopDecoder();
     postMessage('stopped');

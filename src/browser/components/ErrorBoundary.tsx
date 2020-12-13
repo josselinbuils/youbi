@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import { ERROR_ACTION, ErrorAction } from '../../shared/actions';
 import { SharedProperties } from '../../shared/SharedProperties';
@@ -7,45 +7,21 @@ export class ErrorBoundary extends Component {
   private clear?: () => void;
 
   componentDidCatch(error: Error, { componentStack }: ErrorInfo) {
-    toast.error(
-      <>
-        {formatError(error)}
-        <br />${componentStack}
-      </>
-    );
+    console.log(componentStack);
+    this.onError(error);
   }
 
   componentDidMount() {
     const { actions } = window.remote as SharedProperties;
 
-    const errorListenerCallback = (event: ErrorEvent) => {
-      const { colno, error, filename, lineno } = event;
-      const filePath = filename.match(/src.+\.[a-z]+/)?.[0] ?? filename;
-
-      toast.error(
-        <>
-          {formatError(error)}
-          <br />
-          &nbsp;&nbsp;at {filePath} {lineno}:{colno}
-        </>
-      );
-    };
-    const errorActionCallback = ({ error }: ErrorAction) =>
-      toast.error(formatError(error));
-    const unhandledRejectionCallback = (event: PromiseRejectionEvent) =>
-      toast.error(formatError(event.reason));
-
-    window.addEventListener('error', errorListenerCallback);
-    window.addEventListener('unhandledrejection', unhandledRejectionCallback);
-    actions.on(ERROR_ACTION, errorActionCallback);
+    window.addEventListener('error', this.onError);
+    window.addEventListener('unhandledrejection', this.onError);
+    actions.on<ErrorAction>(ERROR_ACTION, this.onError);
 
     this.clear = () => {
-      window.removeEventListener('error', errorListenerCallback);
-      window.removeEventListener(
-        'unhandledrejection',
-        unhandledRejectionCallback
-      );
-      actions.off(ERROR_ACTION, errorActionCallback);
+      window.removeEventListener('error', this.onError);
+      window.removeEventListener('unhandledrejection', this.onError);
+      actions.off(ERROR_ACTION, this.onError);
     };
   }
 
@@ -62,19 +38,28 @@ export class ErrorBoundary extends Component {
       </>
     );
   }
-}
 
-function formatError({ message, stack }: Error): ReactNode {
-  return (
-    <p
-      dangerouslySetInnerHTML={{
-        __html:
-          stack
-            ?.replace(/ /g, '&nbsp;')
-            .replace(/\n/g, '<br />')
-            .replace(/\(webpack:[^)]+\/([^/)]+)\)/g, '($1)')
-            .replace(/\?:/g, ':') || message,
-      }}
-    />
-  );
+  private onError = (
+    input: Error | ErrorAction | ErrorEvent | PromiseRejectionEvent
+  ) => {
+    let error: Error;
+
+    switch (true) {
+      case (input as ErrorAction | ErrorEvent).error !== undefined:
+        ({ error } = input as ErrorAction | ErrorEvent);
+        break;
+
+      case (input as PromiseRejectionEvent).reason !== undefined:
+        error = (input as PromiseRejectionEvent).reason as Error;
+        break;
+
+      default:
+        error = input as Error;
+    }
+
+    console.error(error);
+    toast.error(
+      `💥 ${`${error.message || error}`.replace(/^[^:]+Error:/, '')}`
+    );
+  };
 }

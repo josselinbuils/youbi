@@ -77,7 +77,7 @@ export class Browser {
     this.logger.debug('getMusicList()');
 
     if (!pathExistsSync(folderPath)) {
-      throw new Error('Invalid path');
+      throw new Error('Music folder does not exists');
     }
 
     let musics: Music[];
