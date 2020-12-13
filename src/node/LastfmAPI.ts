@@ -2,7 +2,6 @@ import request from 'request-promise-native';
 import { LASTFM_API_KEY } from '../config.json';
 import { Music } from '../shared/Music';
 import { Logger } from './Logger';
-import { PromiseQueue } from './PromiseQueue';
 import { validate } from './validate';
 
 export class LastfmAPI {
@@ -10,7 +9,7 @@ export class LastfmAPI {
   private readonly uri = 'http://ws.audioscrobbler.com/2.0';
 
   static create(): LastfmAPI {
-    return new LastfmAPI(Logger.create('LastfmApi'), PromiseQueue.create(5));
+    return new LastfmAPI(Logger.create('LastfmApi'));
   }
 
   async getPreview(music: Music): Promise<string | undefined> {
@@ -34,21 +33,19 @@ export class LastfmAPI {
     options.qs.album = search;
 
     try {
-      const promise = this.queue
-        .enqueue(() => request(options))
-        .then((response) => {
-          const matches = response.results.albummatches.album;
+      const promise = request(options).then((response) => {
+        const matches = response.results.albummatches.album;
 
-          if (validate.array(matches)) {
-            const res = matches.filter((r: any) =>
-              validate.string(r.image[0]['#text'])
-            )[0];
-            return res !== undefined
-              ? res.image[res.image.length - 1]['#text']
-              : undefined;
-          }
-          return '';
-        });
+        if (validate.array(matches)) {
+          const res = matches.filter((r: any) =>
+            validate.string(r.image[0]['#text'])
+          )[0];
+          return res !== undefined
+            ? res.image[res.image.length - 1]['#text']
+            : undefined;
+        }
+        return '';
+      });
 
       this.cache[options.qs.album] = promise;
       return promise;
@@ -57,7 +54,7 @@ export class LastfmAPI {
     }
   }
 
-  private constructor(private logger: Logger, private queue: PromiseQueue) {
+  private constructor(private logger: Logger) {
     this.logger.debug('constructor()');
   }
 

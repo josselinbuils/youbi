@@ -1,20 +1,30 @@
-/* eslint-disable no-await-in-loop */
+import { Subject } from '@josselinbuils/utils/Subject';
 import { createHash } from 'crypto';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { protocol } from 'electron';
-import { lstatSync, pathExistsSync, readdir } from 'fs-extra';
+import { pathExistsSync } from 'fs-extra';
 import jimp from 'jimp';
-import * as musicMetadata from 'music-metadata';
 import { join } from 'path';
 import { Music } from '../shared/Music';
 import { COVERS_FOLDER } from './constants';
 import { LastfmAPI } from './LastfmAPI';
 import { Logger } from './Logger';
 import { Store } from './Store';
+import { getMusicInfo } from './utils/getMusicInfo';
 import { validate } from './validate';
+import { listMusics } from './utils/listMusics';
+import { PromiseQueue } from './PromiseQueue';
 
 dayjs.extend(relativeTime);
+
+const MUSIC_LIST = 'musicList';
+
+interface MusicList {
+  folderPath: string;
+  musicPaths?: string[];
+  musics?: Music[];
+}
 
 export class Browser {
   private coversPath = join(this.appPathData, COVERS_FOLDER);
@@ -24,122 +34,115 @@ export class Browser {
       appDataPath,
       Logger.create('Browser'),
       LastfmAPI.create(),
-      Store.getInstance()
+      Store.getInstance(),
+      PromiseQueue.create(3)
     );
   }
 
-  private static async getMusicInfo(path: string): Promise<any> {
-    const { common, format } = await musicMetadata.parseFile(path);
-    const {
-      album,
-      albumartist,
-      artist,
-      artists,
-      comment,
-      composer,
-      disk,
-      genre,
-      picture,
-      title,
-      track,
-      year,
-    } = common;
-    const { duration, sampleRate } = format;
-    const readableDuration = dayjs((duration || 0) * 1000).format('mm:ss');
-    const pathHash = createHash('md5').update(path).digest('hex');
-
-    return {
-      album,
-      albumArtist: albumartist,
-      artist,
-      artists,
-      comment,
-      composer,
-      disk,
-      duration,
-      genre,
-      path,
-      pathHash,
-      picture,
-      readableDuration,
-      sampleRate,
-      title,
-      track,
-      year,
-    };
-  }
-
-  private static isSupported(path: string): boolean {
-    return /\.(aac|aif|flac|m4a|mp3|ogg|wav)$/i.test(path);
-  }
-
-  async getMusicList(folderPath: string): Promise<Music[]> {
+  async getMusicList(onUpdate: (musics: Music[]) => unknown): Promise<void> {
     this.logger.debug('getMusicList()');
-    this.logger.time('musicList');
-    let musics: Music[];
+    this.logger.time(MUSIC_LIST);
+    const subject = new Subject<Music[]>();
+    const unsubscribe = subject.subscribe(onUpdate);
 
-    if (this.store.has('musicList')) {
-      this.logger.debug('From cache');
-      const musicList = this.store.get('musicList');
-      ({ musics } = musicList);
-    } else {
-      this.logger.debug('From file system');
+    if (this.store.has(MUSIC_LIST)) {
+      let musicsList = this.store.get<MusicList>(MUSIC_LIST);
+      const { folderPath } = musicsList;
 
       if (!pathExistsSync(folderPath)) {
-        throw new Error('Music folder does not exists');
+        throw new Error(`Music folder does not exists: ${folderPath}`);
       }
 
-      this.logger.info(`Lists musics from ${folderPath}`);
-      this.logger.time('listsMusics');
-      let musicPaths: string[];
-      if (this.store.has('musicPaths')) {
-        musicPaths = this.store.get('musicPaths');
-      } else {
-        musicPaths = await this.listMusics(folderPath);
-        this.store.set('musicPaths', musicPaths);
+      let { musicPaths, musics } = musicsList;
+
+      if (musicPaths === undefined) {
+        await this.promiseQueue.enqueue(async () => {
+          this.logger.info(`Lists musics from ${folderPath}`);
+          this.logger.time('listsMusics');
+
+          musicPaths = await listMusics(folderPath);
+          musicsList = {
+            ...musicsList,
+            musicPaths,
+          };
+
+          this.store.set(MUSIC_LIST, musicsList);
+          this.logger.timeEnd('listsMusics');
+        });
       }
-      this.logger.timeEnd('listsMusics');
 
-      const startTime = Date.now();
-      let i = 0;
-      musics = [];
+      if (musicPaths === undefined) {
+        throw new Error('musicPaths is undefined');
+      }
 
-      this.logger.time('processesMusics');
-      for (const path of musicPaths) {
-        let remainingTime = '';
+      if (musics === undefined) {
+        musics = [];
+      } else if (musics.length > 0) {
+        subject.next(musics);
+      }
 
-        if (i > 0) {
-          const now = Date.now();
-          const endTime =
-            now + ((musicPaths.length - i) * (now - startTime)) / i;
-          remainingTime = ` (${dayjs().to(endTime, true)} remaining)`;
-        }
+      const musicCount = musicPaths.length;
 
-        this.logger.debug(
-          `Processes music ${++i}/${musicPaths.length}${remainingTime}`
+      if (musics.length < musicCount) {
+        this.logger.info('Processes musics');
+
+        const startTime = Date.now();
+        let i = musics.length;
+
+        this.logger.time('processesMusics');
+
+        await Promise.all(
+          musicPaths
+            .filter((path) => !musics?.some((music) => music.path === path))
+            .map(async (path) =>
+              this.promiseQueue.enqueue(async () => {
+                if (musics === undefined) {
+                  throw new Error('musics is undefined');
+                }
+
+                const music = await getMusicInfo(path);
+                await this.generateCover(music);
+                delete music.picture;
+
+                let remainingTime = '';
+
+                if (i > 0) {
+                  const now = Date.now();
+                  const endTime =
+                    now + ((musicCount - i) * (now - startTime)) / i;
+                  remainingTime = ` (${dayjs().to(endTime, true)} remaining)`;
+                }
+
+                this.logger.debug(
+                  `Processed music ${++i}/${musicCount}${remainingTime}`
+                );
+
+                musics.push(music);
+                this.store.set(MUSIC_LIST, { ...musicsList, musics });
+                subject.next(musics);
+              })
+            )
         );
-
-        const music = await Browser.getMusicInfo(path);
-        await this.generateCover(music);
-        delete music.picture;
-        musics.push(music);
+        this.logger.timeEnd('processesMusics');
+        this.logger.info('Music list updated');
       }
-      this.logger.timeEnd('processesMusics');
-
-      const md5 = createHash('md5').update(musicPaths.join('')).digest('hex');
-      this.store.set('musicList', { md5, musics });
-      this.logger.info('Music list updated');
     }
-    this.logger.timeEnd('musicList');
+    unsubscribe();
+    this.logger.timeEnd(MUSIC_LIST);
+  }
 
-    return musics;
+  async setMusicFolder(folderPath: string): Promise<void> {
+    this.logger.debug(`setMusicFolder(): ${folderPath}`);
+    await this.promiseQueue.clear();
+    this.store.set<MusicList>(MUSIC_LIST, { folderPath });
   }
 
   private constructor(
     private readonly appPathData: string,
     private readonly logger: Logger,
     private readonly previewApi: LastfmAPI,
-    private readonly store: Store
+    private readonly store: Store,
+    private readonly promiseQueue: PromiseQueue
   ) {
     logger.debug('constructor()');
 
@@ -149,7 +152,13 @@ export class Browser {
     });
 
     protocol.registerFileProtocol('music', (request, callback) => {
-      const musics = this.store.get('musicList').musics as Music[];
+      const { musics } = this.store.get<MusicList>(MUSIC_LIST);
+
+      if (musics === undefined) {
+        callback({ statusCode: 404 });
+        return;
+      }
+
       const pathHash = request.url.substr(8).split('/')[0];
       const musicPath = musics.find((music) => music.pathHash === pathHash);
 
@@ -190,22 +199,5 @@ export class Browser {
     } catch (error) {
       this.logger.error(`Unable to generate preview: ${error.stack}`);
     }
-  }
-
-  private async listMusics(path: string): Promise<string[]> {
-    this.logger.debug('listMusics():', path);
-
-    if (lstatSync(path).isDirectory()) {
-      const res = [] as string[];
-
-      const filePromises = (await readdir(path)).map(async (dir) =>
-        this.listMusics(join(path, dir))
-      );
-
-      (await Promise.all(filePromises)).forEach((a) => res.push(...a));
-
-      return res.filter(Browser.isSupported);
-    }
-    return [path];
   }
 }

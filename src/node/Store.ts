@@ -10,15 +10,18 @@ export class Store {
     return this.instance;
   }
 
-  get(key: string): any {
-    return this.internalStore.get(key);
+  get<T>(key: string): T {
+    return this.internalStore.get(key) as T;
   }
 
   has(key: string): boolean {
     return this.internalStore.has(key);
   }
 
-  set(key: string, value: any): void {
+  set<T>(key: string, value: T): void {
+    if (this.has(key)) {
+      this.internalStore.delete(key);
+    }
     this.internalStore.set(key, value);
   }
 

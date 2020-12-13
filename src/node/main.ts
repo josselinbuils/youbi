@@ -1,9 +1,13 @@
 import 'source-map-support/register';
-import { app, BrowserWindow, protocol } from 'electron';
+import { app, BrowserWindow, dialog, protocol } from 'electron';
 import electronWindowState from 'electron-window-state';
 import { join } from 'path';
 import { format } from 'url';
-import { GET_MUSIC_LIST_ACTION, MUSIC_LIST_ACTION } from '../shared/actions';
+import {
+  GET_MUSIC_LIST_ACTION,
+  MUSIC_LIST_ACTION,
+  SELECT_MUSIC_FOLDER_ACTION,
+} from '../shared/actions';
 import { actions } from './actions';
 import { Browser } from './Browser';
 import { Logger } from './Logger';
@@ -34,8 +38,22 @@ export class Main {
         try {
           switch (action.type) {
             case GET_MUSIC_LIST_ACTION: {
-              const musics = await browser.getMusicList(action.path);
-              actions.send({ type: MUSIC_LIST_ACTION, musics });
+              await browser.getMusicList((musics) => {
+                actions.send({ type: MUSIC_LIST_ACTION, musics });
+              });
+              break;
+            }
+
+            case SELECT_MUSIC_FOLDER_ACTION: {
+              const { filePaths } = await dialog.showOpenDialog({
+                properties: ['openDirectory'],
+              });
+              if (filePaths.length === 1) {
+                await browser.setMusicFolder(filePaths[0]);
+                await browser.getMusicList((musics) => {
+                  actions.send({ type: MUSIC_LIST_ACTION, musics });
+                });
+              }
               break;
             }
 

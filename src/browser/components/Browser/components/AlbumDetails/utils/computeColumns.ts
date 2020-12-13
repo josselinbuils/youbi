@@ -1,6 +1,6 @@
 import { RefObject } from 'react';
 import { Music } from '../../../../../../shared/Music';
-import { computeTileSize } from '../../../utils/computeTileSize';
+import { computeTileProperties } from '../../../utils/computeTileProperties';
 import { Column } from '../interfaces/Column';
 
 const COLUMN_MARGIN_PX = 50;
@@ -17,7 +17,7 @@ export function computeColumns(
   }
 
   const containerWidth = detailsElementRef.current.clientWidth;
-  const { tilesByLine } = computeTileSize(
+  const { tilesByLine } = computeTileProperties(
     containerWidth,
     COLUMN_MARGIN_PX,
     PREFERRED_COLUMN_WIDTH_PX,

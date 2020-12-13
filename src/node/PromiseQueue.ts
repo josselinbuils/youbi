@@ -11,6 +11,11 @@ export class PromiseQueue {
     return new PromiseQueue(maxConcurrent);
   }
 
+  async clear(): Promise<void> {
+    this.queue.length = 0;
+    await Promise.all(this.pool);
+  }
+
   async enqueue(handler: () => Promise<any>): Promise<any> {
     const deferred = new Deferred();
     const element = { deferred, handler };

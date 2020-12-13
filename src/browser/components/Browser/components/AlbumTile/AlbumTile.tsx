@@ -1,3 +1,4 @@
+import { useLazy } from '@josselinbuils/hooks/useLazy';
 import cn from 'classnames';
 import React, { FC, HTMLAttributes, useEffect, useRef } from 'react';
 import { useIntersect } from '../../hooks/useIntersectionObserver';
@@ -14,6 +15,7 @@ export const AlbumTile: FC<Props> = ({
 }) => {
   const ref = useRef(null);
   const previousLineIdRef = useRef<string>();
+  const { hasBeenDisplayed } = useLazy(ref);
   const { colorPalette, coverURL } = album;
   const noTransition = lineId === previousLineIdRef.current;
 
@@ -31,7 +33,8 @@ export const AlbumTile: FC<Props> = ({
       )}
       ref={ref}
       style={{
-        backgroundImage: coverURL ? `url(${coverURL})` : undefined,
+        backgroundImage:
+          coverURL && hasBeenDisplayed ? `url(${coverURL})` : undefined,
         width: tileSize,
         height: tileSize,
       }}

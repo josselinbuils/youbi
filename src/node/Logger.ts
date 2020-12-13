@@ -1,5 +1,5 @@
 import color from 'ansicolor';
-import { ERROR_ACTION } from '../shared/actions';
+import { ERROR_ACTION, LOG_ACTION } from '../shared/actions';
 import { actions } from './actions';
 
 const S_TO_MS = 1e3;
@@ -102,5 +102,9 @@ export class Logger {
     ) => string)(`[${level}]`);
     args.unshift(formattedTag, formattedLevel);
     console.log.apply(console.log, args);
+    actions.send({
+      type: LOG_ACTION,
+      args: color.parse(args.join(' ')).asChromeConsoleLogArguments,
+    });
   }
 }

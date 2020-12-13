@@ -1,21 +1,8 @@
-import {
-  GET_MUSIC_LIST_ACTION,
-  MUSIC_LIST_ACTION,
-  MusicListAction,
-} from '../../../../shared/actions';
-import { SharedProperties } from '../../../../shared/SharedProperties';
+import { Music } from '../../../../shared/Music';
 import { Album } from '../interfaces/Album';
 import { groupBy } from './groupBy';
 
-export async function getAlbums(): Promise<Album[]> {
-  const { actions } = window.remote as SharedProperties;
-  actions.send({
-    type: GET_MUSIC_LIST_ACTION,
-    path: '/Volumes/music',
-  });
-  const { musics: rawMusics } = await actions.waitFor<MusicListAction>(
-    MUSIC_LIST_ACTION
-  );
+export function getAlbums(rawMusics: Music[]): Album[] {
   const musicsByAlbum = groupBy(rawMusics, 'album');
 
   return Object.entries(musicsByAlbum)
