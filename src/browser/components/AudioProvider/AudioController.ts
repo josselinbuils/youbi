@@ -151,7 +151,7 @@ export class AudioController {
    */
   setCurrentTime = this.execQueue.makeSync(
     async (value: number): Promise<void> => {
-      if (this.activeMusic === undefined || this.audioBuffer === undefined) {
+      if (this.activeMusic === undefined) {
         return;
       }
       const { duration } = this.activeMusic;
@@ -164,6 +164,7 @@ export class AudioController {
         await this.play();
       } else {
         this.audioElement.currentTime = this.currentTime;
+        this.publishState();
       }
     }
   );
@@ -199,6 +200,9 @@ export class AudioController {
       'timeupdate',
       this.timeUpdateListener
     );
+    if (!this.audioElement.paused) {
+      this.audioElement.pause();
+    }
   }
 
   private decode = async (music: Music): Promise<MediaStream> => {
