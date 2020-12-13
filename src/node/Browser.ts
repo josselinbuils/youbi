@@ -5,7 +5,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { protocol } from 'electron';
 import { lstatSync, pathExistsSync, readdir } from 'fs-extra';
 import jimp from 'jimp';
-import musicMetadata from 'music-metadata';
+import * as musicMetadata from 'music-metadata';
 import { join } from 'path';
 import { Music } from '../shared/Music';
 import { COVERS_FOLDER } from './constants';
