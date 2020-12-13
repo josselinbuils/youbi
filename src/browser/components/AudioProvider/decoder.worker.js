@@ -2,7 +2,7 @@ import AV from './3rdparties/aurora';
 
 global.AV = AV;
 
-const initALACCodec = import('./3rdparties/alac');
+const initALACCodec = import('@josselinbuils/alac');
 let asset;
 let fetchSource;
 

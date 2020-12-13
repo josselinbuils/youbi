@@ -75,14 +75,8 @@ export class Browser {
 
   async getMusicList(folderPath: string): Promise<Music[]> {
     this.logger.debug('getMusicList()');
-
-    if (!pathExistsSync(folderPath)) {
-      throw new Error('Music folder does not exists');
-    }
-
-    let musics: Music[];
-
     this.logger.time('musicList');
+    let musics: Music[];
 
     if (this.store.has('musicList')) {
       this.logger.debug('From cache');
@@ -90,6 +84,10 @@ export class Browser {
       ({ musics } = musicList);
     } else {
       this.logger.debug('From file system');
+
+      if (!pathExistsSync(folderPath)) {
+        throw new Error('Music folder does not exists');
+      }
 
       this.logger.info(`Lists musics from ${folderPath}`);
       this.logger.time('listsMusics');

@@ -32,6 +32,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.7",
     "@fortawesome/fontawesome-free": "^5.15.1",
+    "@josselinbuils/alac": "^0.1.0",
     "@josselinbuils/eslint-config-react": "^0.1.0",
     "@josselinbuils/hooks": "^0.2.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.4.3",

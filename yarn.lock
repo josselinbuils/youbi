@@ -519,6 +519,11 @@
     "@babel/runtime" "^7.7.2"
     regenerator-runtime "^0.13.3"
 
+"@josselinbuils/alac@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@josselinbuils/alac/-/alac-0.1.0.tgz#75f655ec52e05bf9e84a79429f13dc5162e06d11"
+  integrity sha512-3xBwAMaYKMXQLAM0q9IQRVXMFy7Sfhv/KD2iEwa9cS5qy3dNidYyZjnlf3IenZUaycxOK8nQcsJQgmImI5cX1A==
+
 "@josselinbuils/eslint-config-react@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@josselinbuils/eslint-config-react/-/eslint-config-react-0.1.0.tgz#9b122db6d950446eef1fcec01b7a012d1b5e4d1b"
